@@ -1,4 +1,5 @@
-import type { GeminiGenerateRequest, GeminiGenerateResponse, ImageResult } from '../types/api';
+import { GoogleGenAI } from '@google/genai';
+import type { GeminiGenerateRequest, ImageResult } from '../types/api';
 import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
 
 const BATCH_SIZE = 2;
@@ -47,35 +48,23 @@ export class GeminiClient {
     signal: AbortSignal,
     attempt = 0
   ): Promise<ImageResult | null> {
+    if (signal.aborted) return null;
+
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
-        signal,
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new NetworkError('API 키가 설정되지 않았습니다.');
+
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: request.model,
+        contents: request.contents,
+        config: request.config,
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-
-        if (response.status === 429) {
-          const retryAfter = data.retryAfter ?? 60;
-          if (attempt < RETRY_DELAYS.length) {
-            await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
-            return this.generateWithRetry(request, signal, attempt + 1);
-          }
-          throw new RateLimitError(data.message ?? '속도 제한 초과', retryAfter);
-        }
-
-        if (response.status === 403) {
-          throw new PermissionError(data.message ?? 'API 키 권한 없음');
-        }
-
-        throw new NetworkError(data.message ?? `HTTP ${response.status}`);
-      }
-
-      const data: GeminiGenerateResponse = await response.json();
-      const imagePart = data.candidates?.[0]?.content?.parts.find((p) => p.inlineData);
+      const parts = response.candidates?.[0]?.content?.parts ?? [];
+      const imagePart = parts.find(
+        (p: { inlineData?: { data?: string } }) => p.inlineData
+      );
 
       if (!imagePart?.inlineData?.data) {
         throw new NetworkError('이미지를 반환받지 못했습니다.');
@@ -86,8 +75,23 @@ export class GeminiClient {
         url: `data:image/png;base64,${imagePart.inlineData.data}`,
         prompt: '',
       };
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return null;
+
+      const e = err as { status?: number; retryAfter?: number; message?: string };
+
+      if (e.status === 429) {
+        if (attempt < RETRY_DELAYS.length) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+          return this.generateWithRetry(request, signal, attempt + 1);
+        }
+        throw new RateLimitError(e.message ?? '속도 제한 초과', e.retryAfter ?? 60);
+      }
+
+      if (e.status === 403) {
+        throw new PermissionError(e.message ?? 'API 키 권한 없음');
+      }
+
       throw err;
     }
   }
