@@ -40,3 +40,13 @@ packages/*/node_modules
 # Misc
 *.tsbuildinfo
 .cache/
+
+# History (VSCode extension)
+.history/
+
+# Turbo cache
+.turbo/
+
+# Kiro IDE
+.kiro/
+.amazonq/
