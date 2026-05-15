@@ -41,6 +41,9 @@ packages/*/node_modules
 *.tsbuildinfo
 .cache/
 
+# Lock files (monorepo uses npm workspaces)
+package-lock.json
+
 # History (VSCode extension)
 .history/
 
