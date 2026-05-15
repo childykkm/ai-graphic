@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@repo/core": ["../../packages/core/src"],
+      "@repo/ui": ["../../packages/ui/src"]
+    }
+  },
+  "include": ["src", "../../packages/ui/src/ResultsGallery/ResultsGallery.tsx", "../../packages/ui/src/CollapsibleSection/CollapsibleSection.tsx", "../../packages/ui/src/ImageUploader/ImageUploader.tsx", "../../packages/core/src/hooks/usePageState.ts", "../../packages/ui/src/PageShell/PageShell.tsx", "../../packages/ui/src/TuningSection/TuningSection.tsx", "../../packages/ui/src/GenerateButton/GenerateButton.tsx"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

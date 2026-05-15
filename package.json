@@ -1,0 +1,29 @@
+{
+  "name": "ai-graphic-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:client": "turbo dev --filter=@repo/graphic",
+    "dev:server": "turbo dev --filter=@repo/graphic-server",
+    "build": "turbo build",
+    "build:client": "turbo build --filter=@repo/graphic",
+    "build:server": "turbo build --filter=@repo/graphic-server",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "eslint": "^9.18.0",
+    "turbo": "^2.9.14",
+    "typescript": "~5.8.2",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "npm@10.2.4"
+}
