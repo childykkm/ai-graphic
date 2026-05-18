@@ -3,6 +3,7 @@ import type { GeminiGenerateRequest, ImageResult } from '../types/api';
 import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
 
 const BATCH_SIZE = 2;
+const BATCH_DELAY = 2000;
 const RETRY_DELAYS = [1000, 2000, 4000];
 
 export class GeminiClient {
@@ -15,28 +16,37 @@ export class GeminiClient {
 
   async generateBatch(
     requests: GeminiGenerateRequest[],
-    onProgress: (completed: number, total: number) => void
+    onProgress: (completed: number, total: number) => void,
+    onResult?: (result: ImageResult) => void  // 이미지 1장 완료될 때마다 즉시 콜백
   ): Promise<ImageResult[]> {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
     const results: ImageResult[] = [];
     const total = requests.length;
+    let completed = 0;
 
+    // 2 2 1 방식으로 배치 처리
     for (let i = 0; i < total; i += BATCH_SIZE) {
       if (signal.aborted) break;
 
       const batch = requests.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.all(
-        batch.map((req) => this.generateWithRetry(req, signal))
+
+      // 배치 내 각 요청을 병렬로 실행, 완료되는 즉시 콜백
+      await Promise.all(
+        batch.map(async (req) => {
+          const result = await this.generateWithRetry(req, signal);
+          if (result) {
+            results.push(result);
+            completed++;
+            onResult?.(result);           // 완료 즉시 UI에 표시
+            onProgress(completed, total); // 진행률 업데이트
+          }
+        })
       );
 
-      for (const result of batchResults) {
-        if (result) results.push(result);
-      }
-      onProgress(results.length, total);
-
+      // 마지막 배치가 아니면 딜레이
       if (i + BATCH_SIZE < total && !signal.aborted) {
-        await new Promise((r) => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, BATCH_DELAY));
       }
     }
 

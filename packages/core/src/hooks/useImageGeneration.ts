@@ -177,10 +177,18 @@ export function useImageGeneration() {
     const label = opts.activeTab === 'floor' ? '생성된 바닥컷' : opts.activeTab === 'concept' ? '생성된 컨셉 배경' : '생성된 모델 컷';
 
     try {
-      const generated = await clientRef.current.generateBatch(requests, (completed, total) => {
-        setProgress((completed / total) * 100);
-      });
+      const generated = await clientRef.current.generateBatch(
+        requests,
+        (completed, total) => {
+          setProgress((completed / total) * 100);
+        },
+        (result) => {
+          // 이미지 1장 완료될 때마다 즉시 갤러리에 추가
+          setResults((prev) => [...prev, { ...result, prompt: label }]);
+        }
+      );
 
+      // 최종 결과 동기화 (혹시 누락된 것 보완)
       setResults(generated.map((r) => ({ ...r, prompt: label })));
     } catch (err) {
       setError(formatErrorMessage(err));
