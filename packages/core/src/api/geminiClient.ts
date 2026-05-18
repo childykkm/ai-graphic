@@ -14,6 +14,10 @@ export class GeminiClient {
     this.abortController = null;
   }
 
+  isCancelled(): boolean {
+    return this.abortController === null;
+  }
+
   async generateBatch(
     requests: GeminiGenerateRequest[],
     onProgress: (completed: number, total: number) => void,
@@ -35,11 +39,11 @@ export class GeminiClient {
       await Promise.all(
         batch.map(async (req) => {
           const result = await this.generateWithRetry(req, signal);
-          if (result) {
+          if (result && !signal.aborted) {  // abort 후 결과는 무시
             results.push(result);
             completed++;
-            onResult?.(result);           // 완료 즉시 UI에 표시
-            onProgress(completed, total); // 진행률 업데이트
+            onResult?.(result);
+            onProgress(completed, total);
           }
         })
       );

@@ -188,8 +188,10 @@ export function useImageGeneration() {
         }
       );
 
-      // 최종 결과 동기화 (혹시 누락된 것 보완)
-      setResults(generated.map((r) => ({ ...r, prompt: label })));
+      // 최종 결과 동기화 (취소되지 않은 경우만)
+      if (!clientRef.current.isCancelled()) {
+        setResults(generated.map((r) => ({ ...r, prompt: label })));
+      }
     } catch (err) {
       setError(formatErrorMessage(err));
     } finally {
