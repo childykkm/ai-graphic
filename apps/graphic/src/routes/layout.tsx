@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Shirt, Menu, X, LogOut } from 'lucide-react';
+import { Shirt, Menu, X, LogOut, Clock } from 'lucide-react';
 import { clearAppAuthToken } from '@repo/core';
 
 const NAV_ITEMS = [
   { to: '/graphic', label: 'Graphic', sub: '모델 컷' },
   { to: '/concept', label: 'Concept', sub: '컨셉 배경' },
   { to: '/floor', label: 'Floor', sub: '바닥컷' },
-  { to: '/history', label: 'History', sub: '생성 기록' },
 ];
 
 export default function Layout() {
@@ -58,9 +57,23 @@ export default function Layout() {
           </nav>
 
           {/* Right slot (desktop) + Mobile hamburger */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {/* 헤더 액션 버튼 포탈 영역 */}
             <div id="header-right" className="hidden sm:flex items-center gap-3" />
+
+            {/* 히스토리 버튼 */}
+            <NavLink
+              to="/history"
+              className={({ isActive }) =>
+                `hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+                  isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
+                }`
+              }
+              title="히스토리"
+            >
+              <Clock size={16} />
+              <span className="hidden md:inline">History</span>
+            </NavLink>
 
             {/* 로그아웃 버튼 */}
             <button
@@ -110,10 +123,25 @@ export default function Layout() {
                   )}
                 </NavLink>
               ))}
-            </nav>
 
-            {/* Mobile 헤더 액션 버튼 영역 */}
-            <div id="header-right-mobile" className="flex items-center gap-2 px-4 pb-3" />
+              {/* Mobile 히스토리 - 기존 메뉴와 동일한 nav 안에 위치 */}
+              <NavLink
+                to="/history"
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                    isActive ? 'bg-[#1A1A1A] text-white' : 'text-gray-600 hover:bg-gray-50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span>History</span>
+                    <span className={`text-xs font-medium ${isActive ? 'text-white/60' : 'text-gray-400'}`}>생성 기록</span>
+                  </>
+                )}
+              </NavLink>
+            </nav>
 
             {/* Mobile 로그아웃 */}
             <div className="px-4 pb-4">

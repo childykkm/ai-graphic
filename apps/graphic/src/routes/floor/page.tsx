@@ -3,6 +3,7 @@ import { Image as ImageIcon, Settings2 } from 'lucide-react';
 import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, addHistory } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
+import type { BrandName } from '@repo/ui';
 
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
 
@@ -14,7 +15,7 @@ const FLOOR_SECTIONS = [
 ];
 
 export default function FloorPage() {
-  const [brandName, setBrandName] = useState('');
+  const [brandName, setBrandName] = useState<BrandName>('');
   const [productName, setProductName] = useState('');
   const savedRef = useRef(false);
 

@@ -16,4 +16,4 @@ export { PageShell } from './PageShell/PageShell';
 export { TuningSection } from './TuningSection/TuningSection';
 export { GenerateButton } from './GenerateButton/GenerateButton';
 export { BrandInput } from './BrandInput/BrandInput';
-export type { BrandInputProps } from './BrandInput/BrandInput';
+export type { BrandInputProps, BrandName } from './BrandInput/BrandInput';
