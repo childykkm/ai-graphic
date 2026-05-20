@@ -5,11 +5,23 @@
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Layout from './routes/layout';
+import { AuthGuard } from './components/AuthGuard';
 
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    lazy: async () => {
+      const { default: Component } = await import('./routes/login/page');
+      return { Component };
+    },
+  },
+  {
     path: '/',
-    element: <Layout />,
+    element: (
+      <AuthGuard>
+        <Layout />
+      </AuthGuard>
+    ),
     children: [
       {
         index: true,

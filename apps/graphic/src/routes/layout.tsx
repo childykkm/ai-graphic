@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
-import { Shirt, Menu, X } from 'lucide-react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Shirt, Menu, X, LogOut } from 'lucide-react';
+import { clearAppAuthToken } from '@repo/core';
 
 const NAV_ITEMS = [
   { to: '/graphic', label: 'Graphic', sub: '모델 컷' },
@@ -10,6 +11,12 @@ const NAV_ITEMS = [
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearAppAuthToken();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -54,6 +61,16 @@ export default function Layout() {
             {/* 헤더 액션 버튼 포탈 영역 */}
             <div id="header-right" className="hidden sm:flex items-center gap-3" />
 
+            {/* 로그아웃 버튼 */}
+            <button
+              onClick={handleLogout}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl text-sm font-medium transition-colors"
+              title="로그아웃"
+            >
+              <LogOut size={16} />
+              <span className="hidden md:inline">로그아웃</span>
+            </button>
+
             {/* Mobile hamburger */}
             <button
               className="sm:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors"
@@ -96,6 +113,17 @@ export default function Layout() {
 
             {/* Mobile 헤더 액션 버튼 영역 */}
             <div id="header-right-mobile" className="flex items-center gap-2 px-4 pb-3" />
+
+            {/* Mobile 로그아웃 */}
+            <div className="px-4 pb-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors border border-gray-100"
+              >
+                <LogOut size={16} />
+                로그아웃
+              </button>
+            </div>
           </div>
         )}
       </header>
