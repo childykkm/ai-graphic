@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/graphic', label: 'Graphic', sub: '모델 컷' },
   { to: '/concept', label: 'Concept', sub: '컨셉 배경' },
   { to: '/floor', label: 'Floor', sub: '바닥컷' },
+  { to: '/history', label: 'History', sub: '생성 기록' },
 ];
 
 export default function Layout() {

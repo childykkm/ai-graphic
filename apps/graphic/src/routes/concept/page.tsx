@@ -1,11 +1,16 @@
+import { useState, useEffect, useRef } from 'react';
 import { Image as ImageIcon, User, Settings2 } from 'lucide-react';
-import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton } from '@repo/ui';
-import { usePageState } from '@repo/core';
+import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
+import { usePageState, addHistory } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
 
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
 
 export default function ConceptPage() {
+  const [brandName, setBrandName] = useState('');
+  const [productName, setProductName] = useState('');
+  const savedRef = useRef(false);
+
   const state = usePageState('concept');
   const {
     openSections, toggle,
@@ -22,6 +27,20 @@ export default function ConceptPage() {
     isGenerateDisabled,
   } = state;
 
+  useEffect(() => {
+    if (!isGenerating && results.length > 0 && !savedRef.current) {
+      savedRef.current = true;
+      addHistory({
+        activeTab: 'concept',
+        brandName,
+        productName,
+        images: results.map((r) => ({ id: r.id, url: r.url })),
+        count: results.length,
+      });
+    }
+    if (isGenerating) savedRef.current = false;
+  }, [isGenerating, results.length]);
+
   return (
     <PageShell
       activeTab="concept"
@@ -32,6 +51,12 @@ export default function ConceptPage() {
       results={results} isGenerating={isGenerating} progress={progress} error={error}
       count={count} aspectRatio={aspectRatio}
     >
+      {/* 저장 정보 */}
+      <BrandInput
+        brandName={brandName} productName={productName}
+        onBrandChange={setBrandName} onProductChange={setProductName}
+      />
+
       {/* 생성 튜닝 */}
       <CollapsibleSection
         open={openSections.config} onToggle={() => toggle('config')}

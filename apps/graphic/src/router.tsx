@@ -48,6 +48,13 @@ export const router = createBrowserRouter([
           return { Component };
         },
       },
+      {
+        path: 'history',
+        lazy: async () => {
+          const { default: Component } = await import('./routes/history/page');
+          return { Component };
+        },
+      },
     ],
   },
 ]);
