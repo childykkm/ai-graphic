@@ -1,0 +1,84 @@
+import { useNavigate } from 'react-router-dom';
+import { Image as ImageIcon, Settings2 } from 'lucide-react';
+import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton } from '@repo/ui';
+import { usePageState } from '@repo/core';
+import type { AspectRatio } from '@repo/core';
+
+const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
+
+export default function ModelPage() {
+  const state = usePageState('model');
+  const {
+    openSections, toggle,
+    customPrompt, setCustomPrompt,
+    aspectRatio, setAspectRatio,
+    imageSize, setImageSize,
+    modelType, setModelType,
+    modelBgColor, setModelBgColor,
+    showPwdModal, setShowPwdModal,
+    showErrorModal, setShowErrorModal,
+    selectedFullscreen, setSelectedFullscreen,
+    authenticated, verify,
+    images, refs, processFiles, removeImage,
+    results, isGenerating, progress, error, generate, cancel,
+    isGenerateDisabled,
+  } = state;
+
+  const navigate = useNavigate();
+
+  return (
+    <PageShell
+      activeTab="model"
+      onNavigate={(tab) => navigate(`/${tab}`)}
+      showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
+      showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
+      selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}
+      authenticated={authenticated} verify={verify} onConfirmPassword={generate}
+      results={results} isGenerating={isGenerating} progress={progress} error={error}
+      count={4} aspectRatio={aspectRatio}
+    >
+      {/* 생성 튜닝 */}
+      <CollapsibleSection
+        open={openSections.config} onToggle={() => toggle('config')}
+        icon={<Settings2 size={24} className="text-purple-500" />} iconBg="bg-purple-50"
+        title="생성 튜닝"
+        subtitle={customPrompt ? '입력 완료' : '미입력'}
+        subtitleColor={customPrompt ? 'text-purple-600' : 'text-gray-400'}
+      >
+        <TuningSection
+          activeTab="model"
+          customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
+          aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
+          imageSize={imageSize} setImageSize={setImageSize}
+          modelType={modelType} setModelType={setModelType}
+          modelBgColor={modelBgColor} setModelBgColor={setModelBgColor}
+          aspectRatios={ASPECT_RATIOS}
+        />
+      </CollapsibleSection>
+
+      {/* 레퍼런스 모델 */}
+      <CollapsibleSection
+        open={openSections.modelReference} onToggle={() => toggle('modelReference')}
+        icon={<ImageIcon size={24} className="text-indigo-500" />} iconBg="bg-indigo-50"
+        title="레퍼런스 모델"
+        subtitle={images.modelReference.length > 0 ? `입력 완료 (${images.modelReference.length}장)` : '입력 전 (최대 5장)'}
+        subtitleColor={images.modelReference.length > 0 ? 'text-indigo-500' : 'text-gray-400'}
+      >
+        <ImageUploader
+          images={images.modelReference} target="modelReference" maxCount={5}
+          inputRef={refs.modelReference} onFiles={processFiles} onRemove={removeImage}
+          onFullscreen={setSelectedFullscreen}
+          placeholder="모델 사진 드롭 또는 클릭 (최대 5장)" variant="list" hoverColor="indigo"
+        />
+      </CollapsibleSection>
+
+      {/* 생성 버튼 */}
+      <GenerateButton
+        isGenerating={isGenerating} isDisabled={isGenerateDisabled}
+        results={results} count={4}
+        label="AI 모델 생성하기"
+        onGenerate={generate} onCancel={cancel}
+      />
+    </PageShell>
+  );
+}

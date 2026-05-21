@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Upload, User, Image as ImageIcon, Settings2 } from 'lucide-react';
 import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, addHistory } from '@repo/core';
@@ -6,6 +7,13 @@ import type { AspectRatio } from '@repo/core';
 import type { BrandName } from '@repo/ui';
 
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
+
+const GRAPHIC_SECTIONS = [
+  { key: 'graphicFront' as const, title: '정면 이미지', max: 2, target: 'graphicFront' as const, placeholder: '정면 사진 드롭 또는 클릭' },
+  { key: 'graphicBack' as const, title: '후면 이미지', max: 2, target: 'graphicBack' as const, placeholder: '후면 사진 드롭 또는 클릭' },
+  { key: 'graphicDetail' as const, title: '디테일 이미지', max: 10, target: 'graphicDetail' as const, placeholder: '디테일 사진 드롭 또는 클릭' },
+  { key: 'graphicOther' as const, title: '기타 착장 이미지', max: 5, target: 'graphicOther' as const, placeholder: '기타 착장 사진(바지, 신발 등) 드롭 또는 클릭' },
+];
 
 export default function GraphicPage() {
   const [brandName, setBrandName] = useState<BrandName>('');
@@ -23,6 +31,7 @@ export default function GraphicPage() {
     gazeVariation, setGazeVariation,
     poseVariation, setPoseVariation,
     viewVariation, setViewVariation,
+    modelType, setModelType,
     showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
@@ -32,7 +41,6 @@ export default function GraphicPage() {
     isGenerateDisabled,
   } = state;
 
-  // 생성 완료 시 히스토리 저장
   useEffect(() => {
     if (!isGenerating && results.length > 0 && !savedRef.current) {
       savedRef.current = true;
@@ -49,9 +57,12 @@ export default function GraphicPage() {
     }
   }, [isGenerating, results.length]);
 
+  const navigate = useNavigate();
+
   return (
     <PageShell
       activeTab="graphic"
+      onNavigate={(tab) => navigate(`/${tab}`)}
       showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}
@@ -83,30 +94,35 @@ export default function GraphicPage() {
           gazeVariation={gazeVariation} setGazeVariation={setGazeVariation}
           poseVariation={poseVariation} setPoseVariation={setPoseVariation}
           viewVariation={viewVariation} setViewVariation={setViewVariation}
+          modelType={modelType} setModelType={setModelType}
           aspectRatios={ASPECT_RATIOS}
         />
       </CollapsibleSection>
 
-      {/* 상품 이미지 */}
-      <CollapsibleSection
-        open={openSections.garment} onToggle={() => toggle('garment')}
-        icon={<Upload size={24} className="text-orange-500" />} iconBg="bg-orange-50"
-        title="상품 이미지"
-        subtitle={images.garment.length > 0 ? `입력 완료 (${images.garment.length}장)` : '입력 전'}
-        subtitleColor={images.garment.length > 0 ? 'text-green-500' : 'text-gray-400'}
-      >
-        <ImageUploader
-          images={images.garment} target="garment"
-          inputRef={refs.garment} onFiles={processFiles} onRemove={removeImage}
-          placeholder="이곳을 클릭하거나 이미지를 드롭하세요" variant="large"
-        />
-      </CollapsibleSection>
+      {/* 상품 이미지 4개 슬롯 */}
+      {GRAPHIC_SECTIONS.map(({ key, title, max, target, placeholder }) => (
+        <CollapsibleSection key={key}
+          open={openSections[key]} onToggle={() => toggle(key)}
+          icon={<Upload size={24} className="text-orange-500" />} iconBg="bg-orange-50"
+          title={title}
+          subtitle={images[target].length > 0 ? `입력 완료 (${images[target].length}장)` : `입력 전 (최대 ${max}장)`}
+          subtitleColor={images[target].length > 0 ? 'text-orange-500' : 'text-gray-400'}
+        >
+          <ImageUploader
+            images={images[target]} target={target} maxCount={max}
+            inputRef={refs[target]} onFiles={processFiles} onRemove={removeImage}
+            onFullscreen={setSelectedFullscreen}
+            placeholder={placeholder} variant="list" hoverColor="orange"
+          />
+        </CollapsibleSection>
+      ))}
 
       {/* 모델 이미지 */}
       <CollapsibleSection
         open={openSections.reference} onToggle={() => toggle('reference')}
         icon={<User size={24} className="text-blue-500" />} iconBg="bg-blue-50"
         title="모델 이미지"
+        tooltip="원하는 모델 룩북 사진을 등록하면 해당 얼굴과 체형을 기반으로 생성합니다."
         subtitle={images.reference.length > 0 ? `입력 완료 (${images.reference.length}장)` : '입력 전'}
         subtitleColor={images.reference.length > 0 ? 'text-blue-500' : 'text-gray-400'}
       >
@@ -122,6 +138,7 @@ export default function GraphicPage() {
         open={openSections.background} onToggle={() => toggle('background')}
         icon={<ImageIcon size={24} className="text-pink-500" />} iconBg="bg-pink-50"
         title="컨셉 배경"
+        tooltip="원하는 배경, 조명, 톤앤매너의 레퍼런스를 업로드 하세요. 해당 무드를 기반으로 렌더링 됩니다."
         subtitle={images.background.length > 0 ? `입력 완료 (${images.background.length}장)` : '입력 전'}
         subtitleColor={images.background.length > 0 ? 'text-pink-500' : 'text-gray-400'}
       >

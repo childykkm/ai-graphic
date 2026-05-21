@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Image as ImageIcon, Settings2 } from 'lucide-react';
 import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, addHistory } from '@repo/core';
@@ -28,6 +29,7 @@ export default function FloorPage() {
     count, setCount,
     floorStyle, setFloorStyle,
     floorBgColor, setFloorBgColor,
+    modelType, setModelType,
     showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
@@ -51,9 +53,12 @@ export default function FloorPage() {
     if (isGenerating) savedRef.current = false;
   }, [isGenerating, results.length]);
 
+  const navigate = useNavigate();
+
   return (
     <PageShell
       activeTab="floor"
+      onNavigate={(tab) => navigate(`/${tab}`)}
       showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}
@@ -83,6 +88,7 @@ export default function FloorPage() {
           count={count} setCount={setCount}
           floorStyle={floorStyle} setFloorStyle={setFloorStyle}
           floorBgColor={floorBgColor} setFloorBgColor={setFloorBgColor}
+          modelType={modelType} setModelType={setModelType}
           aspectRatios={ASPECT_RATIOS}
         />
       </CollapsibleSection>

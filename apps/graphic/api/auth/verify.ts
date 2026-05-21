@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -16,7 +17,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ success: false, message: 'Server configuration error' });
   }
 
-  if (password === correctPassword) {
+  const isMatch = timingSafeEqual(
+    Buffer.from(password),
+    Buffer.from(correctPassword)
+  );
+
+  if (isMatch) {
     // JWT 대신 간단한 서명된 토큰 사용 (외부 라이브러리 불필요)
     const token = Buffer.from(
       JSON.stringify({ auth: true, exp: Date.now() + 24 * 60 * 60 * 1000 })

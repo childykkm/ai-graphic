@@ -2,17 +2,21 @@ import { useState } from 'react';
 import { useImageUpload } from './useImageUpload';
 import { useImageGeneration } from './useImageGeneration';
 import { useAuth } from './useAuth';
-import type { AspectRatio, ImageSize, ActiveTab, FloorStyle } from '../types/image';
+import type { AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType } from '../types/image';
 
 type SectionKey =
-  | 'garment' | 'config' | 'reference' | 'background'
+  | 'graphicFront' | 'graphicBack' | 'graphicDetail' | 'graphicOther'
+  | 'config' | 'reference' | 'background'
   | 'conceptReference' | 'conceptObject'
-  | 'floorFront' | 'floorBack' | 'floorLogo' | 'floorDetail';
+  | 'floorFront' | 'floorBack' | 'floorLogo' | 'floorDetail'
+  | 'modelReference' | 'variationImages';
 
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
-  garment: true, config: false, reference: false, background: false,
+  graphicFront: true, graphicBack: true, graphicDetail: true, graphicOther: true,
+  config: false, reference: false, background: false,
   conceptReference: true, conceptObject: false,
   floorFront: true, floorBack: true, floorLogo: true, floorDetail: true,
+  modelReference: true, variationImages: true,
 };
 
 export function usePageState(activeTab: ActiveTab) {
@@ -27,6 +31,8 @@ export function usePageState(activeTab: ActiveTab) {
   const [viewVariation, setViewVariation] = useState(5);
   const [floorStyle, setFloorStyle] = useState<FloorStyle>('hanger');
   const [floorBgColor, setFloorBgColor] = useState('#F3F4F6');
+  const [modelType, setModelType] = useState<ModelType>('nanobanana-2');
+  const [modelBgColor, setModelBgColor] = useState('#FFFFFF');
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedFullscreen, setSelectedFullscreen] = useState<string | null>(null);
@@ -46,8 +52,13 @@ export function usePageState(activeTab: ActiveTab) {
       if (!hasFloor) { setShowErrorModal(true); return; }
     } else if (activeTab === 'concept') {
       if (images.conceptReference.length === 0) { setShowErrorModal(true); return; }
+    } else if (activeTab === 'model') {
+      if (images.modelReference.length === 0) { setShowErrorModal(true); return; }
+    } else if (activeTab === 'variation') {
+      if (images.variation.length === 0) { setShowErrorModal(true); return; }
     } else {
-      if (images.garment.length === 0) { setShowErrorModal(true); return; }
+      const hasGraphic = images.graphicFront.length > 0 || images.graphicBack.length > 0 || images.graphicDetail.length > 0 || images.graphicOther.length > 0;
+      if (!hasGraphic) { setShowErrorModal(true); return; }
     }
     if (needsAuth(count) && !authenticated) {
       setShowPwdModal(true);
@@ -60,8 +71,11 @@ export function usePageState(activeTab: ActiveTab) {
     generate({
       activeTab, count, aspectRatio, imageSize, imagesPerShot,
       customPrompt, gazeVariation, poseVariation, viewVariation,
-      floorStyle, floorBgColor,
-      images: images.garment,
+      floorStyle, floorBgColor, modelType, modelBgColor,
+      graphicFrontImages: images.graphicFront,
+      graphicBackImages: images.graphicBack,
+      graphicDetailImages: images.graphicDetail,
+      graphicOtherImages: images.graphicOther,
       refModelImages: images.reference,
       bgImages: images.background,
       conceptRefImages: images.conceptReference,
@@ -70,6 +84,8 @@ export function usePageState(activeTab: ActiveTab) {
       floorBackImages: images.floorBack,
       floorLogoImages: images.floorLogo,
       floorDetailImages: images.floorDetail,
+      modelReferenceImages: images.modelReference,
+      variationImages: images.variation,
     }).then(() => {
       if (error) setShowErrorModal(true);
     });
@@ -77,9 +93,11 @@ export function usePageState(activeTab: ActiveTab) {
 
   const isGenerateDisabled =
     isGenerating ||
-    (activeTab === 'graphic' && images.garment.length === 0) ||
+    (activeTab === 'graphic' && images.graphicFront.length === 0 && images.graphicBack.length === 0 && images.graphicDetail.length === 0 && images.graphicOther.length === 0) ||
     (activeTab === 'floor' && images.floorFront.length === 0 && images.floorBack.length === 0 && images.floorLogo.length === 0 && images.floorDetail.length === 0) ||
-    (activeTab === 'concept' && images.conceptReference.length === 0);
+    (activeTab === 'concept' && images.conceptReference.length === 0) ||
+    (activeTab === 'model' && images.modelReference.length === 0) ||
+    (activeTab === 'variation' && images.variation.length === 0);
 
   return {
     // sections
@@ -95,6 +113,8 @@ export function usePageState(activeTab: ActiveTab) {
     viewVariation, setViewVariation,
     floorStyle, setFloorStyle,
     floorBgColor, setFloorBgColor,
+    modelType, setModelType,
+    modelBgColor, setModelBgColor,
     // modals
     showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,

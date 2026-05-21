@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Image as ImageIcon, User, Settings2 } from 'lucide-react';
 import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, addHistory } from '@repo/core';
@@ -19,6 +20,7 @@ export default function ConceptPage() {
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     count, setCount,
+    modelType, setModelType,
     showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
@@ -42,9 +44,12 @@ export default function ConceptPage() {
     if (isGenerating) savedRef.current = false;
   }, [isGenerating, results.length]);
 
+  const navigate = useNavigate();
+
   return (
     <PageShell
       activeTab="concept"
+      onNavigate={(tab) => navigate(`/${tab}`)}
       showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}
@@ -72,6 +77,7 @@ export default function ConceptPage() {
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}
+          modelType={modelType} setModelType={setModelType}
           aspectRatios={ASPECT_RATIOS}
         />
       </CollapsibleSection>

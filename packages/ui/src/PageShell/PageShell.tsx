@@ -1,15 +1,25 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Check, DownloadCloud } from 'lucide-react';
+import { X, Check, DownloadCloud, BookOpen } from 'lucide-react';
 import { PasswordModal } from '../PasswordModal/PasswordModal';
 import { ErrorModal } from '../ErrorModal/ErrorModal';
 import { ResultsGallery } from '../ResultsGallery/ResultsGallery';
+import { GuideModal } from '../GuideModal/GuideModal';
 import type { AspectRatio, ActiveTab, GeneratedImage } from '@repo/core';
 import JSZip from 'jszip';
 
+const NAV_ITEMS: { tab: ActiveTab; label: string }[] = [
+  { tab: 'graphic', label: 'Graphic' },
+  { tab: 'concept', label: 'Concept' },
+  { tab: 'floor', label: 'Floor' },
+  { tab: 'model', label: 'Model' },
+  { tab: 'variation', label: 'Variation' },
+];
+
 interface PageShellProps {
   activeTab: ActiveTab;
+  onNavigate: (tab: ActiveTab) => void;
   showPwdModal: boolean;
   setShowPwdModal: (v: boolean) => void;
   showErrorModal: boolean;
@@ -30,6 +40,7 @@ interface PageShellProps {
 
 export function PageShell({
   activeTab,
+  onNavigate,
   showPwdModal, setShowPwdModal,
   showErrorModal, setShowErrorModal,
   selectedFullscreen, setSelectedFullscreen,
@@ -40,6 +51,8 @@ export function PageShell({
 }: PageShellProps) {
   const [headerRight, setHeaderRight] = useState<Element | null>(null);
   const [headerRightMobile, setHeaderRightMobile] = useState<Element | null>(null);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [activeGuideTab, setActiveGuideTab] = useState('all');
 
   useEffect(() => {
     setHeaderRight(document.getElementById('header-right'));
@@ -110,6 +123,13 @@ export function PageShell({
 
       <ErrorModal open={showErrorModal} error={error} onClose={() => setShowErrorModal(false)} />
 
+      <GuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        activeTab={activeGuideTab}
+        onTabChange={setActiveGuideTab}
+      />
+
       {/* Fullscreen viewer */}
       <AnimatePresence>
         {selectedFullscreen && (
@@ -138,6 +158,34 @@ export function PageShell({
       <main className="max-w-[1600px] mx-auto px-6 sm:px-8 mt-8 grid grid-cols-1 xl:grid-cols-12 gap-8">
         {/* Left Column */}
         <div className="xl:col-span-4 flex flex-col gap-6 relative pb-32 xl:pb-0">
+          {/* 탭 네비게이션 */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="grid grid-cols-5">
+              {NAV_ITEMS.map(({ tab, label }) => (
+                <button
+                  key={tab}
+                  onClick={() => onNavigate(tab)}
+                  className={`flex flex-col items-center justify-center py-3 text-xs font-bold transition-all border-b-2 ${
+                    activeTab === tab
+                      ? 'text-[#1A1A1A] border-[#1A1A1A] bg-gray-50'
+                      : 'text-gray-400 border-transparent hover:text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="px-3 py-2.5 border-t border-gray-100">
+              <button
+                onClick={() => setShowGuideModal(true)}
+                className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all border border-blue-200"
+              >
+                <BookOpen size={13} />
+                임직원 사용 가이드
+              </button>
+            </div>
+          </div>
+
           {children}
         </div>
 

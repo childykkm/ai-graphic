@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { GeminiClient, formatErrorMessage } from '@repo/core';
-import type { GeneratedImage, AspectRatio, ImageSize, ActiveTab, FloorStyle, UploadedImage } from '@repo/core';
-import { API_ASPECT_RATIO_MAP, API_MODEL, HIGH_VOLUME_THRESHOLD } from '@repo/core';
+import type { GeneratedImage, AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType, UploadedImage } from '@repo/core';
+import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, HIGH_VOLUME_THRESHOLD } from '@repo/core';
 import type { GeminiGenerateRequest, GeminiPart } from '@repo/core';
 
 interface GenerationOptions {
@@ -16,7 +16,12 @@ interface GenerationOptions {
   viewVariation: number;
   floorStyle: FloorStyle;
   floorBgColor: string;
-  images: UploadedImage[];
+  modelType: ModelType;
+  modelBgColor: string;
+  graphicFrontImages: UploadedImage[];
+  graphicBackImages: UploadedImage[];
+  graphicDetailImages: UploadedImage[];
+  graphicOtherImages: UploadedImage[];
   refModelImages: UploadedImage[];
   bgImages: UploadedImage[];
   conceptRefImages: UploadedImage[];
@@ -25,6 +30,8 @@ interface GenerationOptions {
   floorBackImages: UploadedImage[];
   floorLogoImages: UploadedImage[];
   floorDetailImages: UploadedImage[];
+  modelReferenceImages: UploadedImage[];
+  variationImages: UploadedImage[];
 }
 
 const GAZE_OPTIONS = [
@@ -49,6 +56,29 @@ const VIEW_OPTIONS = [
   '매우 먼 거리에서 공간 전체를 보여주는 딥 포커스 뷰',
   '바닥에 붙어서 올려다보듯 촬영한 극단적 로우 앵글',
 ];
+
+const MODEL_SHOTS = [
+  { id: 0, name: '얼굴 확대샷 (얼굴 클로즈업 포트레이트)', desc: '모델의 얼굴에 완전히 초점을 맞춰 눈빛과 이목구비가 선명하게 표현되는 익스트림 클로즈업 포트레이트.' },
+  { id: 1, name: '전신샷 (전체 실루엣과 의상 착용 핏)', desc: '머리부터 발끝까지 모델의 전체 실루엣과 의상 착용 핏, 비율이 한눈에 보이는 구도. 정면 기준의 전신이 한눈에 보이게 생성하세요.' },
+  { id: 2, name: '측면샷 (옆모습 90도 프로필 컷)', desc: '모델의 옆모습(90도 측면). 얼굴과 몸의 측면 라인이 명확하게 드러나는 프로필 컷입니다.' },
+  { id: 3, name: '후면샷 (의상 뒷면과 머릿결 구도)', desc: '모델을 등 뒤에서 촬영한 컷. 의상의 뒷면 디자인과 머릿결이 중심이 되는 후면 구도입니다.' },
+];
+
+function getColorName(hex: string): string {
+  const names: Record<string, string> = {
+    '#FFFFFF': '순백색 (Solid White)',
+    '#F3F4F6': '매우 밝은 회색 (Off-white / Light Gray)',
+    '#E5E7EB': '밝은 회색 (Light Gray)',
+    '#D1D5DB': '회색 (Medium Gray)',
+    '#FCA5A5': '연분홍색 (Light Pink)',
+    '#FCD34D': '따뜻한 노란색 (Soft Yellow)',
+    '#86EFAC': '연한 초록색 (Soft Mint Green)',
+    '#9A3412': '말린 장미색 / 브라운 레드 (Rust Orange / Brown)',
+    '#3B82F6': '파란색 (Blue)',
+    '#1E3A8A': '네이비색 (Dark Navy)',
+  };
+  return names[hex.toUpperCase()] ?? hex;
+}
 
 function buildLayoutPrompt(imagesPerShot: number): string {
   if (imagesPerShot === 1) {
@@ -84,14 +114,43 @@ function buildVariationPrompts(gaze: number, pose: number, view: number) {
 
 const GARMENT_DETAIL_PROMPT = `\n[의류 디테일 통합 지침]: 업로드된 이미지에는 옷의 전체 모습뿐만 아니라 특정 디테일(원단, 로고, 소매, 넥라인 등)을 확대한 이미지들도 포함되어 있을 수 있습니다. 각 디테일 이미지가 옷의 어느 부위에 해당하는지 논리적으로 파악하여, 전체 의류에 자연스럽고 정확하게 통합해 렌더링해야 합니다.`;
 
-function buildRequest(opts: GenerationOptions): GeminiGenerateRequest {
-  const { activeTab, aspectRatio, imageSize, imagesPerShot, customPrompt, gazeVariation, poseVariation, viewVariation, floorStyle, floorBgColor } = opts;
+function buildRequest(opts: GenerationOptions, shotIndex?: number): GeminiGenerateRequest {
+  const { activeTab, aspectRatio, imageSize, imagesPerShot, customPrompt, gazeVariation, poseVariation, viewVariation, floorStyle, floorBgColor, modelType, modelBgColor } = opts;
   const parts: GeminiPart[] = [];
   let prompt = '';
 
   const layoutPrompt = buildLayoutPrompt(imagesPerShot);
 
-  if (activeTab === 'floor') {
+  if (activeTab === 'model') {
+    const shot = MODEL_SHOTS[shotIndex ?? 0];
+    const bgColName = getColorName(modelBgColor);
+    prompt = `[동일 인물 일관성 있는 모델 컷 생성 - ${shot.name}]\n`;
+    prompt += `제공된 레퍼런스 모델 예시 사진들을 극도로 정밀 분석하여, 동일한 인물(이목구비, 얼굴형, 머리색, 헤어스타일, 피부톤, 착용한 의상, 체형)이 100% 동일하게 유지되는 고품질 실사 이미지를 생성해 주세요.\n\n`;
+    prompt += `[반드시 지켜야 할 가이드라인]:\n`;
+    prompt += `- 인물의 일관성: 모델의 신원(얼굴, 눈동자 색, 머리색/스타일, 피부톤, 착용한 의상)이 100% 동일하게 유지될 것.\n`;
+    prompt += `- 화질: 깨끗하고 부드러운 전형적인 패션 스튜디오 조명, 고해상도, 실사(Photorealistic) 사진 스타일.\n`;
+    prompt += `- 배경 조건: 인물 뒤의 스튜디오 배경을 지정된 단일 색상인 '${bgColName}' (Hex 코드: ${modelBgColor}) 솔리드 배경으로 명확하고 깨끗하게 하세요.\n\n`;
+    prompt += `[현재 컷 설정 - ${shot.name}]:\n${shot.desc}\n\n`;
+    prompt += `[최우선 절대 제약 조건]:\n`;
+    prompt += `- 이 이미지 파일 안에는 오직 단 1개의 컷, 단 1명의 피사체만 단독 존재해야 합니다. 콜라주나 분할 격자 형태는 절대로 금지합니다.\n`;
+    prompt += `- 이미지 내부 및 가장자리에 불필요한 텍스트, 워터마크, 로고가 포함되어서는 절대 안 됩니다.\n`;
+    if (customPrompt) prompt += `\n[기본 요청 사항 (선택)]: ${customPrompt}`;
+
+    parts.push({ text: `[레퍼런스 모델 예시 사진] 다음 사진의 인물과 옷차림을 철저하게 분석하여 일치된 이미지로 생성하시오.` });
+    opts.modelReferenceImages.forEach((img) => {
+      parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+    });
+  } else if (activeTab === 'variation') {
+    const { gazePrompt, posePrompt, viewPrompt } = buildVariationPrompts(gazeVariation, poseVariation, viewVariation);
+    prompt = `[업로드된 원본 참고 이미지 목록]: 총 ${opts.variationImages.length}장\n이 이미지들에 있는 패션 아이템/인물/컨셉의 요소를 정확히 파악하여, 다양한 자세(pose), 시선(gaze) 및 카메라 앵글(view)로 극적인 변주(Variation)를 준 새로운 화보 컷을 생성해 주세요. 기존 아이템 고유의 핵심 형태나 디자인은 유지하되, 자세와 레이아웃을 완전히 새롭게 하여 창의적으로 재해석되어야 합니다.`;
+    prompt += layoutPrompt + gazePrompt + posePrompt + viewPrompt;
+    if (customPrompt) prompt += `\n[기본 요청 사항 (선택)]: ${customPrompt}`;
+
+    opts.variationImages.forEach((img) => {
+      parts.push({ text: `[참고 사진] [파일명: ${img.file.name}]` });
+      parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+    });
+  } else if (activeTab === 'floor') {
     const total = opts.floorFrontImages.length + opts.floorBackImages.length + opts.floorLogoImages.length + opts.floorDetailImages.length;
     prompt = `[업로드된 상품 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 의류 아이템을 정확히 인식하여 상품 상세 페이지에 적합한 "바닥컷(Floor cut)" 형태로 렌더링하세요.`;
     prompt += layoutPrompt + GARMENT_DETAIL_PROMPT;
@@ -129,15 +188,45 @@ function buildRequest(opts: GenerationOptions): GeminiGenerateRequest {
       opts.conceptObjImages.forEach((img) => parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } }));
     }
   } else {
+    // graphic
     const { gazePrompt, posePrompt, viewPrompt } = buildVariationPrompts(gazeVariation, poseVariation, viewVariation);
-    prompt = `[업로드된 상품 이미지 목록]: 총 ${opts.images.length}장\n이 이미지들에 있는 패션 아이템/상품을 정확히 인식하고, 가장 완성도 높은 화보(룩북) 컷으로 렌더링하세요.`;
+    const totalGraphic = opts.graphicFrontImages.length + opts.graphicBackImages.length + opts.graphicDetailImages.length + opts.graphicOtherImages.length;
+    prompt = `[업로드된 상품 이미지 목록]: 총 ${totalGraphic}장\n이 이미지들에 있는 패션 아이템/상품을 정확히 인식하고, 가장 완성도 높은 화보(룩북) 컷으로 렌더링하세요. 상품의 디테일과 특징이 왜곡되지 않아야 합니다.`;
     prompt += layoutPrompt + GARMENT_DETAIL_PROMPT + gazePrompt + posePrompt + viewPrompt;
     if (customPrompt) prompt += `\n[기본 요청 사항 - 이 지침을 반드시 최우선으로 따를 것]: ${customPrompt}`;
     if (opts.refModelImages.length > 0) {
       prompt += `\n주의: 최대 5개의 인물 예시 이미지가 제공되었습니다. 새롭게 만들어지는 모델의 체형과 외모는 오직 이 예시 이미지들의 모델을 최우선으로 반영하여 통일성 있게 생성하세요.`;
     }
 
-    opts.images.forEach((img) => parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } }));
+    if (opts.graphicFrontImages.length > 0) {
+      parts.push({ text: '[정면 이미지] 다음은 상품의 정면 모습입니다.' });
+      opts.graphicFrontImages.forEach((img) => {
+        parts.push({ text: `[파일명: ${img.file.name}]` });
+        parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+      });
+    }
+    if (opts.graphicBackImages.length > 0) {
+      parts.push({ text: '[후면 이미지] 다음은 상품의 후면 모습입니다.' });
+      opts.graphicBackImages.forEach((img) => {
+        parts.push({ text: `[파일명: ${img.file.name}]` });
+        parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+      });
+    }
+    if (opts.graphicDetailImages.length > 0) {
+      parts.push({ text: '[세부 디테일 이미지] 다음은 상품의 원단, 패턴 등 세부 디테일입니다.' });
+      opts.graphicDetailImages.forEach((img) => {
+        parts.push({ text: `[파일명: ${img.file.name}]` });
+        parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+      });
+    }
+    if (opts.graphicOtherImages.length > 0) {
+      parts.push({ text: '[기타/참고 이미지] 다음은 상품의 참고 스타일링 또는 레이아웃 정보입니다.' });
+      opts.graphicOtherImages.forEach((img) => {
+        parts.push({ text: `[파일명: ${img.file.name}]` });
+        parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+      });
+    }
+
     opts.refModelImages.forEach((img) => parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } }));
 
     if (opts.bgImages.length > 0) {
@@ -149,7 +238,7 @@ function buildRequest(opts: GenerationOptions): GeminiGenerateRequest {
   parts.push({ text: prompt });
 
   return {
-    model: API_MODEL,
+    model: API_MODEL_MAP[modelType],
     contents: { parts },
     config: {
       imageConfig: {
@@ -173,25 +262,31 @@ export function useImageGeneration() {
     setError(null);
     setResults([]);
 
-    const requests = Array.from({ length: opts.count }, () => buildRequest(opts));
-    const label = opts.activeTab === 'floor' ? '생성된 바닥컷' : opts.activeTab === 'concept' ? '생성된 컨셉 배경' : '생성된 모델 컷';
+    // model 탭은 4개 고정 샷을 순서대로 생성
+    const requests = opts.activeTab === 'model'
+      ? Array.from({ length: 4 }, (_, i) => buildRequest(opts, i))
+      : Array.from({ length: opts.count }, () => buildRequest(opts));
+
+    const label =
+      opts.activeTab === 'floor' ? '생성된 바닥컷' :
+      opts.activeTab === 'concept' ? '생성된 컨셉 배경' :
+      opts.activeTab === 'model' ? '생성된 모델 컷' :
+      opts.activeTab === 'variation' ? '생성된 변주 컷' :
+      '생성된 모델 컷';
 
     try {
-      const generated = await clientRef.current.generateBatch(
+      let completedCount = 0;
+      await clientRef.current.generateBatch(
         requests,
         (completed, total) => {
           setProgress((completed / total) * 100);
         },
         (result) => {
-          // 이미지 1장 완료될 때마다 즉시 갤러리에 추가
-          setResults((prev) => [...prev, { ...result, prompt: label }]);
+          const shotIndex = opts.activeTab === 'model' ? completedCount : undefined;
+          completedCount++;
+          setResults((prev) => [...prev, { ...result, prompt: label, shotIndex }]);
         }
       );
-
-      // 최종 결과 동기화 (취소되지 않은 경우만)
-      if (!clientRef.current.isCancelled()) {
-        setResults(generated.map((r) => ({ ...r, prompt: label })));
-      }
     } catch (err) {
       setError(formatErrorMessage(err));
     } finally {

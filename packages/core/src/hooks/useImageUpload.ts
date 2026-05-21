@@ -3,6 +3,10 @@ import { fileToBase64 } from '@repo/core';
 import type { UploadedImage, ImageTarget } from '@repo/core';
 
 const MAX_COUNTS: Partial<Record<ImageTarget, number>> = {
+  graphicFront: 2,
+  graphicBack: 2,
+  graphicDetail: 10,
+  graphicOther: 5,
   reference: 5,
   background: 5,
   conceptReference: 5,
@@ -11,9 +15,15 @@ const MAX_COUNTS: Partial<Record<ImageTarget, number>> = {
   floorBack: 2,
   floorLogo: 2,
   floorDetail: 10,
+  modelReference: 5,
+  variation: 5,
 };
 
 const ERROR_MESSAGES: Partial<Record<ImageTarget, string>> = {
+  graphicFront: '정면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
+  graphicBack: '후면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
+  graphicDetail: '디테일 이미지는 최대 10개까지만 업로드할 수 있습니다.',
+  graphicOther: '기타 착장 이미지는 최대 5개까지만 업로드할 수 있습니다.',
   reference: '모델 이미지는 최대 5개까지만 업로드할 수 있습니다.',
   background: '배경 이미지는 최대 5개까지만 업로드할 수 있습니다.',
   conceptReference: '레퍼런스 이미지는 최대 5개까지만 업로드할 수 있습니다.',
@@ -22,11 +32,16 @@ const ERROR_MESSAGES: Partial<Record<ImageTarget, string>> = {
   floorBack: '후면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
   floorLogo: '로고 이미지는 최대 2개까지만 업로드할 수 있습니다.',
   floorDetail: '세부 디테일 이미지는 최대 10개까지만 업로드할 수 있습니다.',
+  modelReference: '레퍼런스 모델 이미지는 최대 5개까지만 업로드할 수 있습니다.',
+  variation: 'AI 변주용 이미지는 최대 5개까지만 업로드할 수 있습니다.',
 };
 
 export function useImageUpload(onError: (msg: string) => void) {
   const [images, setImages] = useState<Record<ImageTarget, UploadedImage[]>>({
-    garment: [],
+    graphicFront: [],
+    graphicBack: [],
+    graphicDetail: [],
+    graphicOther: [],
     reference: [],
     background: [],
     conceptReference: [],
@@ -35,10 +50,15 @@ export function useImageUpload(onError: (msg: string) => void) {
     floorBack: [],
     floorLogo: [],
     floorDetail: [],
+    modelReference: [],
+    variation: [],
   });
 
   const refs: Record<ImageTarget, React.RefObject<HTMLInputElement | null>> = {
-    garment: useRef<HTMLInputElement>(null),
+    graphicFront: useRef<HTMLInputElement>(null),
+    graphicBack: useRef<HTMLInputElement>(null),
+    graphicDetail: useRef<HTMLInputElement>(null),
+    graphicOther: useRef<HTMLInputElement>(null),
     reference: useRef<HTMLInputElement>(null),
     background: useRef<HTMLInputElement>(null),
     conceptReference: useRef<HTMLInputElement>(null),
@@ -47,9 +67,11 @@ export function useImageUpload(onError: (msg: string) => void) {
     floorBack: useRef<HTMLInputElement>(null),
     floorLogo: useRef<HTMLInputElement>(null),
     floorDetail: useRef<HTMLInputElement>(null),
+    modelReference: useRef<HTMLInputElement>(null),
+    variation: useRef<HTMLInputElement>(null),
   };
 
-  const processFiles = async (files: FileList | null, target: ImageTarget = 'garment') => {
+  const processFiles = async (files: FileList | null, target: ImageTarget = 'graphicFront') => {
     if (!files) return;
     const newFiles = Array.from(files);
     const max = MAX_COUNTS[target];
@@ -71,7 +93,7 @@ export function useImageUpload(onError: (msg: string) => void) {
     setImages((prev) => ({ ...prev, [target]: [...prev[target], ...processed] }));
   };
 
-  const removeImage = (id: string, target: ImageTarget = 'garment') => {
+  const removeImage = (id: string, target: ImageTarget = 'graphicFront') => {
     setImages((prev) => ({
       ...prev,
       [target]: prev[target].filter((img) => img.id !== id),
@@ -80,7 +102,10 @@ export function useImageUpload(onError: (msg: string) => void) {
 
   const resetAll = () => {
     setImages({
-      garment: [],
+      graphicFront: [],
+      graphicBack: [],
+      graphicDetail: [],
+      graphicOther: [],
       reference: [],
       background: [],
       conceptReference: [],
@@ -89,6 +114,8 @@ export function useImageUpload(onError: (msg: string) => void) {
       floorBack: [],
       floorLogo: [],
       floorDetail: [],
+      modelReference: [],
+      variation: [],
     });
     Object.values(refs).forEach((ref) => {
       if (ref.current) ref.current.value = '';
