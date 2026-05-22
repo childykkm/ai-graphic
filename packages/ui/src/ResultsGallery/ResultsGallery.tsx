@@ -180,7 +180,7 @@ export function ResultsGallery({
             ))}
 
             {isGenerating && results.length < count &&
-              Array.from({ length: Math.min(3, count - results.length) }).map((_, i) => (
+              Array.from({ length: count - results.length }).map((_, i) => (
                 <motion.div
                   key={`skeleton-${i}`}
                   initial={{ opacity: 0 }}

@@ -2,7 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import type { GeminiGenerateRequest, ImageResult } from '../types/api';
 import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
 
-const BATCH_SIZE = 2;
+export const BATCH_SIZE = 2;
 const BATCH_DELAY = 2000;
 const RETRY_DELAYS = [1000, 2000, 4000];
 
@@ -21,7 +21,8 @@ export class GeminiClient {
   async generateBatch(
     requests: GeminiGenerateRequest[],
     onProgress: (completed: number, total: number) => void,
-    onResult?: (result: ImageResult) => void  // 이미지 1장 완료될 때마다 즉시 콜백
+    onResult?: (result: ImageResult, requestIndex: number) => void,
+    batchSize: number = BATCH_SIZE
   ): Promise<ImageResult[]> {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
@@ -29,27 +30,25 @@ export class GeminiClient {
     const total = requests.length;
     let completed = 0;
 
-    // 2 2 1 방식으로 배치 처리
-    for (let i = 0; i < total; i += BATCH_SIZE) {
+    for (let i = 0; i < total; i += batchSize) {
       if (signal.aborted) break;
 
-      const batch = requests.slice(i, i + BATCH_SIZE);
+      const batch = requests.slice(i, i + batchSize);
 
-      // 배치 내 각 요청을 병렬로 실행, 완료되는 즉시 콜백
       await Promise.all(
-        batch.map(async (req) => {
+        batch.map(async (req, batchOffset) => {
+          const requestIndex = i + batchOffset;
           const result = await this.generateWithRetry(req, signal);
-          if (result && !signal.aborted) {  // abort 후 결과는 무시
+          if (result && !signal.aborted) {
             results.push(result);
             completed++;
-            onResult?.(result);
+            onResult?.(result, requestIndex);
             onProgress(completed, total);
           }
         })
       );
 
-      // 마지막 배치가 아니면 딜레이
-      if (i + BATCH_SIZE < total && !signal.aborted) {
+      if (i + batchSize < total && !signal.aborted) {
         await new Promise((r) => setTimeout(r, BATCH_DELAY));
       }
     }

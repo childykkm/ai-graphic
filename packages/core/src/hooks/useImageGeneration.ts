@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GeminiClient, formatErrorMessage } from '@repo/core';
+import { GeminiClient, formatErrorMessage, BATCH_SIZE } from '@repo/core';
 import type { GeneratedImage, AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType, UploadedImage } from '@repo/core';
 import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, HIGH_VOLUME_THRESHOLD } from '@repo/core';
 import type { GeminiGenerateRequest, GeminiPart } from '@repo/core';
@@ -275,17 +275,16 @@ export function useImageGeneration() {
       '생성된 모델 컷';
 
     try {
-      let completedCount = 0;
       await clientRef.current.generateBatch(
         requests,
         (completed, total) => {
           setProgress((completed / total) * 100);
         },
-        (result) => {
-          const shotIndex = opts.activeTab === 'model' ? completedCount : undefined;
-          completedCount++;
+        (result, requestIndex) => {
+          const shotIndex = opts.activeTab === 'model' ? requestIndex : undefined;
           setResults((prev) => [...prev, { ...result, prompt: label, shotIndex }]);
-        }
+        },
+        opts.activeTab === 'model' ? 4 : BATCH_SIZE
       );
     } catch (err) {
       setError(formatErrorMessage(err));
