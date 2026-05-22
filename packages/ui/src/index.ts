@@ -19,3 +19,4 @@ export { BrandInput } from './BrandInput/BrandInput';
 export type { BrandInputProps, BrandName } from './BrandInput/BrandInput';
 export { GuideModal } from './GuideModal/index';
 export { FullscreenViewer } from './FullscreenViewer/index';
+export { ColorPicker } from './ColorPicker/index';

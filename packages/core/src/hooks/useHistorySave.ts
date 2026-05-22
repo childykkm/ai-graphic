@@ -21,6 +21,12 @@ export function useHistorySave({
   const savedRef = useRef(false);
 
   useEffect(() => {
+    if (isGenerating) {
+      savedRef.current = false;
+    }
+  }, [isGenerating]);
+
+  useEffect(() => {
     if (!isGenerating && results.length > 0 && !savedRef.current) {
       savedRef.current = true;
       addHistory({
@@ -31,6 +37,5 @@ export function useHistorySave({
         count: results.length,
       });
     }
-    if (isGenerating) savedRef.current = false;
-  }, [isGenerating, results.length]);
+  }, [isGenerating, results]);
 }

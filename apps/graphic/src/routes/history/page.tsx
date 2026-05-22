@@ -26,7 +26,10 @@ export default function HistoryPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    setItems(getHistory());
+    const load = () => setItems(getHistory());
+    load();
+    window.addEventListener('focus', load);
+    return () => window.removeEventListener('focus', load);
   }, []);
 
   const handleDelete = (id: string) => {

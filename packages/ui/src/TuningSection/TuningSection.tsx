@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react';
+import { ColorPicker } from '../ColorPicker/ColorPicker';
 import type { AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType } from '@repo/core';
 
 interface TuningSectionProps {
@@ -31,7 +32,6 @@ interface TuningSectionProps {
 }
 
 const IMAGE_SIZES: ImageSize[] = ['1K', '2K', '4K'];
-const BG_COLORS = ['#FFFFFF', '#F3F4F6', '#E5E7EB', '#D1D5DB', '#FCA5A5', '#FCD34D', '#86EFAC', '#9A3412', '#3B82F6', '#1E3A8A'];
 
 export function TuningSection({
   activeTab,
@@ -137,15 +137,7 @@ export function TuningSection({
           </div>
           <div className="space-y-4">
             <label className="text-sm font-bold text-gray-700 block">배경 색상</label>
-            <div className="flex flex-wrap gap-3 items-center">
-              {BG_COLORS.map((color) => (
-                <button key={color} onClick={() => setFloorBgColor(color)}
-                  className={`w-10 h-10 rounded-full border-2 transition-transform ${floorBgColor?.toUpperCase() === color.toUpperCase() ? 'border-[#1A1A1A] scale-110 shadow-md' : 'border-gray-200 hover:scale-105'}`}
-                  style={{ backgroundColor: color }} />
-              ))}
-              <input type="color" value={floorBgColor} onChange={(e) => setFloorBgColor(e.target.value)}
-                className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 hover:scale-105 transition-transform" />
-            </div>
+            <ColorPicker value={floorBgColor ?? '#F3F4F6'} onChange={setFloorBgColor} />
           </div>
         </>
       )}
@@ -154,15 +146,7 @@ export function TuningSection({
       {activeTab === 'model' && setModelBgColor && (
         <div className="space-y-4">
           <label className="text-sm font-bold text-gray-700 block">배경 색상</label>
-          <div className="flex flex-wrap gap-3 items-center">
-            {BG_COLORS.map((color) => (
-              <button key={color} onClick={() => setModelBgColor(color)}
-                className={`w-10 h-10 rounded-full border-2 transition-transform ${modelBgColor?.toUpperCase() === color.toUpperCase() ? 'border-[#1A1A1A] scale-110 shadow-md' : 'border-gray-200 hover:scale-105'}`}
-                style={{ backgroundColor: color }} />
-            ))}
-            <input type="color" value={modelBgColor} onChange={(e) => setModelBgColor(e.target.value)}
-              className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 hover:scale-105 transition-transform" />
-          </div>
+          <ColorPicker value={modelBgColor ?? '#FFFFFF'} onChange={setModelBgColor} />
         </div>
       )}
 

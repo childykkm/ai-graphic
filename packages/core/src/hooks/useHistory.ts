@@ -24,7 +24,6 @@ function saveHistory(items: HistoryItem[]): void {
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
   } catch (e) {
-    // 용량 초과 시 가장 오래된 항목 삭제 후 재시도
     if (e instanceof DOMException && e.name === 'QuotaExceededError') {
       const trimmed = items.slice(1);
       try {
