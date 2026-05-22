@@ -1,13 +1,13 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Check, DownloadCloud, BookOpen } from 'lucide-react';
+import { Check, DownloadCloud, BookOpen } from 'lucide-react';
 import { PasswordModal } from '../PasswordModal/PasswordModal';
 import { ErrorModal } from '../ErrorModal/ErrorModal';
 import { ResultsGallery } from '../ResultsGallery/ResultsGallery';
 import { GuideModal } from '../GuideModal/GuideModal';
+import { FullscreenViewer } from '../FullscreenViewer/FullscreenViewer';
 import type { AspectRatio, ActiveTab, GeneratedImage } from '@repo/core';
-import JSZip from 'jszip';
+import { downloadSingle, downloadZip } from '@repo/core';
 
 const NAV_ITEMS: { tab: ActiveTab; label: string }[] = [
   { tab: 'graphic', label: 'Graphic' },
@@ -59,31 +59,20 @@ export function PageShell({
     setHeaderRightMobile(document.getElementById('header-right-mobile'));
   }, [results.length, authenticated]);
 
-  const downloadSingle = (url: string, name: string) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${name}.png`;
-    a.click();
-  };
-
   const downloadAll = async () => {
-    const zip = new JSZip();
     const prefix =
       activeTab === 'floor' ? 'floor_shot_' :
       activeTab === 'concept' ? 'concept_shot_' :
+      activeTab === 'model' ? 'model_shot_' :
+      activeTab === 'variation' ? 'variation_shot_' :
       'graphic_shot_';
     const zipName =
       activeTab === 'floor' ? 'floor_shots.zip' :
       activeTab === 'concept' ? 'concept_shots.zip' :
+      activeTab === 'model' ? 'model_shots.zip' :
+      activeTab === 'variation' ? 'variation_shots.zip' :
       'graphic_shots.zip';
-    results.forEach((img, i) => {
-      zip.file(`${prefix}${i + 1}.png`, img.url.split(',')[1], { base64: true });
-    });
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = zipName;
-    a.click();
+    await downloadZip(results, zipName, (i) => `${prefix}${i + 1}.png`);
   };
 
   const headerActions = (
@@ -130,29 +119,7 @@ export function PageShell({
         onTabChange={setActiveGuideTab}
       />
 
-      {/* Fullscreen viewer */}
-      <AnimatePresence>
-        {selectedFullscreen && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-10"
-            onClick={() => setSelectedFullscreen(null)}
-          >
-            <button
-              className="absolute top-6 right-6 text-white bg-black/50 hover:bg-white/20 p-3 rounded-full backdrop-blur-md transition-colors"
-              onClick={() => setSelectedFullscreen(null)}
-            >
-              <X size={24} />
-            </button>
-            <motion.img
-              initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
-              src={selectedFullscreen}
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <FullscreenViewer src={selectedFullscreen} onClose={() => setSelectedFullscreen(null)} />
 
       {/* Main layout */}
       <main className="max-w-[1600px] mx-auto px-6 sm:px-8 mt-8 grid grid-cols-1 xl:grid-cols-12 gap-8">

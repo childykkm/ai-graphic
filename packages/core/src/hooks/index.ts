@@ -6,3 +6,4 @@ export { usePageState } from './usePageState';
 export { getAppAuthToken, setAppAuthToken, clearAppAuthToken, isAppAuthenticated } from './useAppAuth';
 export { addHistory, getHistory, deleteHistory, clearHistory } from './useHistory';
 export type { HistoryItem } from './useHistory';
+export { useHistorySave } from './useHistorySave';

@@ -1,9 +1,9 @@
 export interface HistoryItem {
   id: string;
   createdAt: number;
-  activeTab: 'graphic' | 'concept' | 'floor';
-  brandName: string;
-  productName: string;
+  activeTab: 'graphic' | 'concept' | 'floor' | 'model' | 'variation';
+  brandName?: string;
+  productName?: string;
   images: Array<{ id: string; url: string }>;
   count: number;
 }

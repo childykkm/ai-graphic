@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Image as ImageIcon, Settings2 } from 'lucide-react';
 import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton } from '@repo/ui';
-import { usePageState } from '@repo/core';
+import { usePageState, useHistorySave } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
 
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
@@ -23,6 +23,8 @@ export default function ModelPage() {
     results, isGenerating, progress, error, generate, cancel,
     isGenerateDisabled,
   } = state;
+
+  useHistorySave({ activeTab: 'model', isGenerating, results });
 
   const navigate = useNavigate();
 

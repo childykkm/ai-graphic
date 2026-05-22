@@ -1,24 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Download, Trash2, Clock, LayoutGrid, X } from 'lucide-react';
-import JSZip from 'jszip';
-import { getHistory, deleteHistory, clearHistory } from '@repo/core';
+import { Download, Trash2, Clock, LayoutGrid } from 'lucide-react';
+import { getHistory, deleteHistory, clearHistory, downloadSingle, downloadZip, formatDate, formatFileDate } from '@repo/core';
 import type { HistoryItem } from '@repo/core';
-
-const TAB_LABEL: Record<string, string> = {
-  graphic: 'Graphic',
-  concept: 'Concept',
-  floor: 'Floor',
-};
-
-function formatDate(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-function formatFileDate(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
-}
+import { TAB_LABEL } from '@repo/core';
+import { FullscreenViewer } from '@repo/ui';
 
 function getPrefix(item: HistoryItem): string {
   const brand = item.brandName || 'unknown';
@@ -26,25 +11,14 @@ function getPrefix(item: HistoryItem): string {
   return `${brand}_${product}_${item.activeTab}`;
 }
 
-function downloadSingle(url: string, filename: string) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-}
-
 async function downloadAll(item: HistoryItem) {
-  const zip = new JSZip();
   const prefix = getPrefix(item);
   const dateStr = formatFileDate(item.createdAt);
-  item.images.forEach((img, i) => {
-    zip.file(`${prefix}_${dateStr}_${i + 1}.png`, img.url.split(',')[1], { base64: true });
-  });
-  const blob = await zip.generateAsync({ type: 'blob' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${prefix}_${dateStr}.zip`;
-  a.click();
+  await downloadZip(
+    item.images,
+    `${prefix}_${dateStr}.zip`,
+    (i) => `${prefix}_${dateStr}_${i + 1}.png`
+  );
 }
 
 export default function HistoryPage() {
@@ -164,25 +138,7 @@ export default function HistoryPage() {
         })}
       </div>
 
-      {/* Fullscreen Viewer */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <button
-            className="absolute top-6 right-6 text-white bg-black/50 hover:bg-white/20 p-3 rounded-full transition-colors"
-            onClick={() => setSelectedImage(null)}
-          >
-            <X size={24} />
-          </button>
-          <img
-            src={selectedImage}
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      <FullscreenViewer src={selectedImage} onClose={() => setSelectedImage(null)} />
     </div>
   );
 }

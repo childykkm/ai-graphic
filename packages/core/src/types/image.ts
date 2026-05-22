@@ -57,3 +57,11 @@ export const API_MODEL_MAP: Record<ModelType, string> = {
 export const API_MODEL = 'gemini-3-pro-image-preview';
 
 export const HIGH_VOLUME_THRESHOLD = 11;
+
+export const TAB_LABEL: Record<ActiveTab, string> = {
+  graphic: 'Graphic',
+  concept: 'Concept',
+  floor: 'Floor',
+  model: 'Model',
+  variation: 'Variation',
+};
