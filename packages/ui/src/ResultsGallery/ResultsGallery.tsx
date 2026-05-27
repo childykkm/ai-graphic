@@ -100,7 +100,7 @@ export function ResultsGallery({
                             className="bg-white/20 text-white p-3 rounded-xl hover:bg-white/30 transition-colors backdrop-blur-sm">
                             <Maximize2 size={18} />
                           </button>
-                          <button onClick={() => onDownloadSingle(img.url, `${prefix}0${slot.id + 1}`)}
+                          <button onClick={() => onDownloadSingle(img.url, `model_shot_CUT0${slot.id + 1}`)}
                             className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors shadow-lg">
                             <Download size={18} />저장
                           </button>

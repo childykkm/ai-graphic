@@ -60,19 +60,25 @@ export function PageShell({
   }, [results.length, authenticated]);
 
   const downloadAll = async () => {
-    const prefix =
-      activeTab === 'floor' ? 'floor_shot_' :
-      activeTab === 'concept' ? 'concept_shot_' :
-      activeTab === 'model' ? 'model_shot_' :
-      activeTab === 'variation' ? 'variation_shot_' :
-      'graphic_shot_';
     const zipName =
       activeTab === 'floor' ? 'floor_shots.zip' :
       activeTab === 'concept' ? 'concept_shots.zip' :
       activeTab === 'model' ? 'model_shots.zip' :
       activeTab === 'variation' ? 'variation_shots.zip' :
       'graphic_shots.zip';
-    await downloadZip(results, zipName, (i) => `${prefix}${i + 1}.png`);
+    const prefix =
+      activeTab === 'floor' ? 'floor_shot_' :
+      activeTab === 'concept' ? 'concept_shot_' :
+      activeTab === 'model' ? 'model_shot_' :
+      activeTab === 'variation' ? 'variation_shot_' :
+      'graphic_shot_';
+
+    // model 탭은 shotIndex 기준으로 정렬하여 CUT01~04 순서 보장
+    const ordered = activeTab === 'model'
+      ? [...results].sort((a, b) => (a.shotIndex ?? 0) - (b.shotIndex ?? 0))
+      : results;
+
+    await downloadZip(ordered, zipName, (i) => `${prefix}CUT0${i + 1}.png`);
   };
 
   const headerActions = (
