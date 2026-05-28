@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { GeminiClient, formatErrorMessage, BATCH_SIZE } from '@repo/core';
+import { GeminiClient, OpenAIClient, formatErrorMessage, BATCH_SIZE } from '@repo/core';
 import type { GeneratedImage, AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType, UploadedImage } from '@repo/core';
-import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, HIGH_VOLUME_THRESHOLD } from '@repo/core';
-import type { GeminiGenerateRequest, GeminiPart } from '@repo/core';
+import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, HIGH_VOLUME_THRESHOLD, GPT_SIZE_MAP } from '@repo/core';
+import type { GeminiGenerateRequest, GeminiPart, ImageResult } from '@repo/core';
 
 interface GenerationOptions {
   activeTab: ActiveTab;
@@ -113,6 +113,77 @@ function buildVariationPrompts(gaze: number, pose: number, view: number) {
 }
 
 const GARMENT_DETAIL_PROMPT = `\n[의류 디테일 통합 지침]: 업로드된 이미지에는 옷의 전체 모습뿐만 아니라 특정 디테일(원단, 로고, 소매, 넥라인 등)을 확대한 이미지들도 포함되어 있을 수 있습니다. 각 디테일 이미지가 옷의 어느 부위에 해당하는지 논리적으로 파악하여, 전체 의류에 자연스럽고 정확하게 통합해 렌더링해야 합니다.`;
+
+const GPT_MODEL_SHOTS = [
+  {
+    id: 0,
+    prompt: (bg: string, custom: string) =>
+      `${custom ? `${custom}. ` : ''}Extreme close-up portrait shot. Focus entirely on the face — eyes, skin texture, and facial features must be sharp and detailed. Photorealistic, studio lighting, solid ${bg} background. Single subject only, no collage, no text or watermarks.`,
+  },
+  {
+    id: 1,
+    prompt: (bg: string, custom: string) =>
+      `${custom ? `${custom}. ` : ''}Full-body fashion shot, front-facing. Show the entire silhouette from head to toe. Photorealistic, studio lighting, solid ${bg} background. Single subject only, no collage, no text or watermarks.`,
+  },
+  {
+    id: 2,
+    prompt: (bg: string, custom: string) =>
+      `${custom ? `${custom}. ` : ''}90-degree side profile fashion shot. The model faces exactly sideways showing the full side silhouette. Photorealistic, studio lighting, solid ${bg} background. Single subject only, no collage, no text or watermarks.`,
+  },
+  {
+    id: 3,
+    prompt: (bg: string, custom: string) =>
+      `${custom ? `${custom}. ` : ''}Rear-view fashion shot. The model faces away from the camera showing the back of the outfit. Photorealistic, studio lighting, solid ${bg} background. Single subject only, no collage, no text or watermarks.`,
+  },
+];
+
+function buildGptModelPrompt(opts: GenerationOptions, shotIndex: number): string {
+  const shot = GPT_MODEL_SHOTS[shotIndex ?? 0];
+  const bgColor = opts.modelBgColor === '#FFFFFF' ? 'white' : opts.modelBgColor;
+  return shot.prompt(bgColor, opts.customPrompt);
+}
+
+function buildGptPrompt(opts: GenerationOptions): string {
+  const { activeTab, customPrompt, floorStyle, floorBgColor, modelBgColor,
+    gazeVariation, poseVariation, viewVariation, imagesPerShot } = opts;
+
+  const custom = customPrompt ? `${customPrompt}. ` : '';
+  const layout = imagesPerShot > 1
+    ? `Create a collage of exactly ${imagesPerShot} different shots in one image. `
+    : 'Single shot only, no collage. ';
+
+  const gazeEn = gazeVariation <= 3 ? 'Keep the same gaze direction as the reference.'
+    : gazeVariation <= 6 ? 'Slightly vary the gaze direction naturally.'
+    : 'Use a completely different, dynamic gaze direction.';
+  const poseEn = poseVariation <= 3 ? 'Keep the same pose as the reference.'
+    : poseVariation <= 6 ? 'Slightly vary the pose naturally.'
+    : 'Use a completely different, dynamic fashion pose.';
+  const viewEn = viewVariation <= 3 ? 'Keep the same camera angle as the reference.'
+    : viewVariation <= 6 ? 'Slightly vary the camera angle.'
+    : 'Use a dramatically different camera angle or viewpoint.';
+
+  if (activeTab === 'graphic') {
+    return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} No text or watermarks.`;
+  }
+
+  if (activeTab === 'concept') {
+    return `${custom}Generate a new high-quality photorealistic background image that perfectly matches the mood, lighting, color tone, and atmosphere of the reference images. Slightly vary the camera angle while keeping the same location feel. No people, no text or watermarks.`;
+  }
+
+  if (activeTab === 'floor') {
+    const styleMap = { hanger: 'hanging on a hanger', folded: 'neatly folded', spread: 'laid flat and spread out' };
+    const style = styleMap[floorStyle as keyof typeof styleMap] ?? 'laid flat';
+    return `${custom}High-quality photorealistic product shot of the clothing item ${style}. Solid ${floorBgColor} background. Accurately reproduce all garment details, logos, and fabric texture from the reference images. No model, no text or watermarks.`;
+  }
+
+  if (activeTab === 'variation') {
+    return `${custom}High-quality photorealistic fashion variation shot. Keep the core design and identity of the clothing from the reference. ${layout}${gazeEn} ${poseEn} ${viewEn} No text or watermarks.`;
+  }
+
+  // model - handled separately via buildGptModelPrompt
+  const bgColor = modelBgColor === '#FFFFFF' ? 'white' : modelBgColor;
+  return `${custom}High-quality photorealistic fashion model shot. Solid ${bgColor} background. No text or watermarks.`;
+}
 
 function buildRequest(opts: GenerationOptions, shotIndex?: number): GeminiGenerateRequest {
   const { activeTab, aspectRatio, imageSize, imagesPerShot, customPrompt, gazeVariation, poseVariation, viewVariation, floorStyle, floorBgColor, modelType, modelBgColor } = opts;
@@ -254,7 +325,10 @@ export function useImageGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const clientRef = useRef(new GeminiClient());
+  const geminiClientRef = useRef(new GeminiClient());
+  const openaiClientRef = useRef(new OpenAIClient());
+
+  const isOpenAIModel = (modelType: ModelType) => modelType === 'gpt-image-2';
 
   const generate = async (opts: GenerationOptions) => {
     setIsGenerating(true);
@@ -275,17 +349,52 @@ export function useImageGeneration() {
       '생성된 모델 컷';
 
     try {
-      await clientRef.current.generateBatch(
-        requests,
-        (completed, total) => {
-          setProgress((completed / total) * 100);
-        },
-        (result, requestIndex) => {
-          const shotIndex = opts.activeTab === 'model' ? requestIndex : undefined;
-          setResults((prev) => [...prev, { ...result, prompt: label, shotIndex }]);
-        },
-        opts.activeTab === 'model' ? 4 : BATCH_SIZE
-      );
+      const onResultCallback = (result: ImageResult, requestIndex: number) => {
+        const shotIndex = opts.activeTab === 'model' ? requestIndex : undefined;
+        setResults((prev) => [...prev, { ...result, prompt: label, shotIndex }]);
+      };
+      const onProgressCallback = (completed: number, total: number) => {
+        setProgress((completed / total) * 100);
+      };
+
+      if (isOpenAIModel(opts.modelType)) {
+        const openaiRequests = requests.map((req, idx) => ({
+          model: API_MODEL_MAP[opts.modelType],
+          prompt: opts.activeTab === 'model'
+            ? buildGptModelPrompt(opts, idx)
+            : buildGptPrompt(opts),
+          size: GPT_SIZE_MAP[opts.aspectRatio],
+          imageParts: req.contents.parts
+            .filter((p: GeminiPart) => 'inlineData' in p && p.inlineData)
+            .map((p: GeminiPart) => ({
+              data: (p as { inlineData: { data: string; mimeType: string } }).inlineData.data,
+              mimeType: (p as { inlineData: { data: string; mimeType: string } }).inlineData.mimeType,
+            })),
+        }));
+
+        if (opts.activeTab === 'model') {
+          // model 탭: CUT01 생성 후 해당 이미지로 CUT02~04 직렬 생성
+          await openaiClientRef.current.generateModelShots(
+            openaiRequests,
+            onProgressCallback,
+            onResultCallback
+          );
+        } else {
+          await openaiClientRef.current.generateBatch(
+            openaiRequests,
+            onProgressCallback,
+            onResultCallback,
+            BATCH_SIZE
+          );
+        }
+      } else {
+        await geminiClientRef.current.generateBatch(
+          requests,
+          onProgressCallback,
+          onResultCallback,
+          opts.activeTab === 'model' ? 4 : BATCH_SIZE
+        );
+      }
     } catch (err) {
       setError(formatErrorMessage(err));
     } finally {
@@ -294,7 +403,8 @@ export function useImageGeneration() {
   };
 
   const cancel = () => {
-    clientRef.current.cancel();
+    geminiClientRef.current.cancel();
+    openaiClientRef.current.cancel();
     setIsGenerating(false);
   };
 
