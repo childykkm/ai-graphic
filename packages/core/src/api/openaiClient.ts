@@ -80,8 +80,10 @@ export class OpenAIClient {
 
       if (i > 0 && results[0]) {
         // CUT02~04: 원본 레퍼런스 대신 CUT01 결과만 레퍼런스로 사용
-        const firstImageB64 = results[0].url.replace('data:image/png;base64,', '');
-        req.imageParts = [{ data: firstImageB64, mimeType: 'image/png' }];
+        const firstUrl = results[0].url;
+        const firstB64 = firstUrl.split(',')[1];
+        const firstMime = firstUrl.split(';')[0].split(':')[1] || 'image/png';
+        req.imageParts = [{ data: firstB64, mimeType: firstMime }];
       }
 
       const result = await this.generateWithRetry(req, signal);
@@ -124,8 +126,13 @@ export class OpenAIClient {
             for (let i = 0; i < byteString.length; i++) {
               bytes[i] = byteString.charCodeAt(i);
             }
-            const blob = new Blob([bytes], { type: 'image/png' });
-            return toFile(blob, `image_${idx}.png`, { type: 'image/png' });
+            // 실제 mimeType 유지 (jpeg/webp 등)
+            const mimeType = img.mimeType || 'image/png';
+            const ext = mimeType === 'image/jpeg' ? 'jpg'
+              : mimeType === 'image/webp' ? 'webp'
+              : 'png';
+            const blob = new Blob([bytes], { type: mimeType });
+            return toFile(blob, `image_${idx}.${ext}`, { type: mimeType });
           })
         );
 
