@@ -83,9 +83,11 @@ export class GeminiClient {
         throw new NetworkError('이미지를 반환받지 못했습니다.');
       }
 
+      const mimeType = imagePart.inlineData.mimeType || 'image/png';
+
       return {
         id: Math.random().toString(36).slice(2, 11),
-        url: `data:image/png;base64,${imagePart.inlineData.data}`,
+        url: `data:${mimeType};base64,${imagePart.inlineData.data}`,
         prompt: '',
       };
     } catch (err: unknown) {

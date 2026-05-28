@@ -7,10 +7,31 @@ export const fileToBase64 = (file: File): Promise<string> =>
   });
 
 export const downloadSingle = (url: string, filename: string): void => {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
-  a.click();
+  if (url.startsWith('data:')) {
+    const [header, data] = url.split(',');
+    const mimeType = header.split(':')[1].split(';')[0];
+    const ext = mimeType === 'image/jpeg' ? 'jpg'
+      : mimeType === 'image/webp' ? 'webp'
+      : 'png';
+    const baseName = filename.replace(/\.[^.]+$/, '');
+    const finalName = `${baseName}.${ext}`;
+    const bytes = atob(data);
+    const buffer = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) buffer[i] = bytes.charCodeAt(i);
+    const blob = new Blob([buffer], { type: mimeType });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = finalName;
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+  } else {
+    const finalName = filename.endsWith('.png') ? filename : `${filename}.png`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = finalName;
+    a.click();
+  }
 };
 
 export const formatDate = (ts: number): string => {
@@ -41,7 +62,13 @@ export const downloadZip = async (
   const JSZip = (await import('jszip')).default;
   const zip = new JSZip();
   images.forEach((img, i) => {
-    zip.file(getFilename(i), img.url.split(',')[1], { base64: true });
+    const [header, data] = img.url.split(',');
+    const mimeType = header.split(':')[1]?.split(';')[0] ?? 'image/png';
+    const ext = mimeType === 'image/jpeg' ? 'jpg'
+      : mimeType === 'image/webp' ? 'webp'
+      : 'png';
+    const baseName = getFilename(i).replace(/\.[^.]+$/, '');
+    zip.file(`${baseName}.${ext}`, data, { base64: true });
   });
   const blob = await zip.generateAsync({ type: 'blob' });
   const a = document.createElement('a');
