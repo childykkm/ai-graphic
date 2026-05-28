@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useImageUpload } from './useImageUpload';
 import { useImageGeneration } from './useImageGeneration';
-import { useAuth } from './useAuth';
 import type { AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType } from '../types/image';
 
 type SectionKey =
@@ -33,15 +32,13 @@ export function usePageState(activeTab: ActiveTab) {
   const [floorBgColor, setFloorBgColor] = useState('#F3F4F6');
   const [modelType, setModelType] = useState<ModelType>('nanobanana-2');
   const [modelBgColor, setModelBgColor] = useState('#FFFFFF');
-  const [showPwdModal, setShowPwdModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedFullscreen, setSelectedFullscreen] = useState<string | null>(null);
 
-  const { authenticated, verify } = useAuth();
   const { images, refs, processFiles, removeImage } = useImageUpload(() => {
     setShowErrorModal(true);
   });
-  const { results, isGenerating, progress, error, generate, cancel, needsAuth } = useImageGeneration();
+  const { results, isGenerating, progress, error, generate, cancel } = useImageGeneration();
 
   const toggle = (key: SectionKey) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -59,10 +56,6 @@ export function usePageState(activeTab: ActiveTab) {
     } else {
       const hasGraphic = images.graphicFront.length > 0 || images.graphicBack.length > 0 || images.graphicDetail.length > 0 || images.graphicOther.length > 0;
       if (!hasGraphic) { setShowErrorModal(true); return; }
-    }
-    if (needsAuth(count) && !authenticated) {
-      setShowPwdModal(true);
-      return;
     }
     runGenerate();
   };
@@ -100,9 +93,7 @@ export function usePageState(activeTab: ActiveTab) {
     (activeTab === 'variation' && images.variation.length === 0);
 
   return {
-    // sections
     openSections, toggle,
-    // form state
     customPrompt, setCustomPrompt,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
@@ -115,15 +106,9 @@ export function usePageState(activeTab: ActiveTab) {
     floorBgColor, setFloorBgColor,
     modelType, setModelType,
     modelBgColor, setModelBgColor,
-    // modals
-    showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
-    // auth
-    authenticated, verify,
-    // images
     images, refs, processFiles, removeImage,
-    // generation
     results, isGenerating, progress, error, generate: () => handleGenerate(runGenerate), cancel,
     isGenerateDisabled,
   };

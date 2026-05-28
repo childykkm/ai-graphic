@@ -19,10 +19,8 @@ export default function ConceptPage() {
     imageSize, setImageSize,
     count, setCount,
     modelType, setModelType,
-    showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
-    authenticated, verify,
     images, refs, processFiles, removeImage,
     results, isGenerating, progress, error, generate, cancel,
     isGenerateDisabled,
@@ -37,10 +35,8 @@ export default function ConceptPage() {
       activeTab="concept"
       onNavigate={(tab) => navigate(`/${tab}`)}
       brandName={brandName} productName={productName}
-      showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}
-      authenticated={authenticated} verify={verify} onConfirmPassword={generate}
       results={results} isGenerating={isGenerating} progress={progress} error={error}
       count={count} aspectRatio={aspectRatio}
     >

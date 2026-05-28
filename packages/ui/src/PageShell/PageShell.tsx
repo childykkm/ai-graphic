@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, DownloadCloud, BookOpen } from 'lucide-react';
-import { PasswordModal } from '../PasswordModal/PasswordModal';
+import { DownloadCloud, BookOpen } from 'lucide-react';
 import { ErrorModal } from '../ErrorModal/ErrorModal';
 import { ResultsGallery } from '../ResultsGallery/ResultsGallery';
 import { GuideModal } from '../GuideModal/GuideModal';
@@ -22,15 +21,10 @@ interface PageShellProps {
   onNavigate: (tab: ActiveTab) => void;
   brandName?: string;
   productName?: string;
-  showPwdModal: boolean;
-  setShowPwdModal: (v: boolean) => void;
   showErrorModal: boolean;
   setShowErrorModal: (v: boolean) => void;
   selectedFullscreen: string | null;
   setSelectedFullscreen: (v: string | null) => void;
-  authenticated: boolean;
-  verify: (pwd: string) => Promise<{ success: boolean; message: string }>;
-  onConfirmPassword: () => void;
   results: GeneratedImage[];
   isGenerating: boolean;
   progress: number;
@@ -45,10 +39,8 @@ export function PageShell({
   onNavigate,
   brandName = '',
   productName = '',
-  showPwdModal, setShowPwdModal,
   showErrorModal, setShowErrorModal,
   selectedFullscreen, setSelectedFullscreen,
-  authenticated, verify, onConfirmPassword,
   results, isGenerating, progress, error,
   count, aspectRatio,
   children,
@@ -61,7 +53,7 @@ export function PageShell({
   useEffect(() => {
     setHeaderRight(document.getElementById('header-right'));
     setHeaderRightMobile(document.getElementById('header-right-mobile'));
-  }, [results.length, authenticated]);
+  }, [results.length]);
 
   const downloadAll = async () => {
     const dateStr = formatDownloadDate(Date.now());
@@ -83,11 +75,6 @@ export function PageShell({
 
   const headerActions = (
     <>
-      {authenticated && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-200">
-          <Check size={12} /> 인증됨
-        </div>
-      )}
       {results.length > 0 && (
         <button
           onClick={downloadAll}
@@ -105,16 +92,6 @@ export function PageShell({
       {headerRight && createPortal(headerActions, headerRight)}
       {/* 헤더 right slot에 액션 버튼 포탈 (mobile) */}
       {headerRightMobile && createPortal(headerActions, headerRightMobile)}
-
-      <PasswordModal
-        open={showPwdModal}
-        onClose={() => setShowPwdModal(false)}
-        onConfirm={async (pwd) => {
-          const result = await verify(pwd);
-          if (result.success) { setShowPwdModal(false); onConfirmPassword(); }
-          return result;
-        }}
-      />
 
       <ErrorModal open={showErrorModal} error={error} onClose={() => setShowErrorModal(false)} />
 

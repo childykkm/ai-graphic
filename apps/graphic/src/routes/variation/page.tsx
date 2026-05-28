@@ -23,10 +23,8 @@ export default function VariationPage() {
     poseVariation, setPoseVariation,
     viewVariation, setViewVariation,
     modelType, setModelType,
-    showPwdModal, setShowPwdModal,
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
-    authenticated, verify,
     images, refs, processFiles, removeImage,
     results, isGenerating, progress, error, generate, cancel,
     isGenerateDisabled,
@@ -41,10 +39,8 @@ export default function VariationPage() {
       activeTab="variation"
       onNavigate={(tab) => navigate(`/${tab}`)}
       brandName={brandName} productName={productName}
-      showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}
-      authenticated={authenticated} verify={verify} onConfirmPassword={generate}
       results={results} isGenerating={isGenerating} progress={progress} error={error}
       count={count} aspectRatio={aspectRatio}
     >

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { GeminiClient, OpenAIClient, formatErrorMessage, BATCH_SIZE } from '@repo/core';
 import type { GeneratedImage, AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType, UploadedImage } from '@repo/core';
-import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, HIGH_VOLUME_THRESHOLD, GPT_SIZE_MAP } from '@repo/core';
+import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, GPT_SIZE_MAP } from '@repo/core';
 import type { GeminiGenerateRequest, GeminiPart, ImageResult } from '@repo/core';
 
 interface GenerationOptions {
@@ -408,7 +408,5 @@ export function useImageGeneration() {
     setIsGenerating(false);
   };
 
-  const needsAuth = (count: number) => count >= HIGH_VOLUME_THRESHOLD;
-
-  return { results, isGenerating, progress, error, generate, cancel, needsAuth };
+  return { results, isGenerating, progress, error, generate, cancel };
 }

@@ -8,9 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
-      'process.env.OPENAI_API_KEY': JSON.stringify(env.OPENAI_API_KEY || ''),
-      'process.env.HIGH_VOLUME_PASSWORD': JSON.stringify(env.HIGH_VOLUME_PASSWORD || ''),
+      'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY || env.GEMINI_API_KEY || ''),
+      'process.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY || env.OPENAI_API_KEY || ''),
+      'process.env.HIGH_VOLUME_PASSWORD': JSON.stringify(process.env.HIGH_VOLUME_PASSWORD || env.HIGH_VOLUME_PASSWORD || ''),
     },
     resolve: {
       alias: {
