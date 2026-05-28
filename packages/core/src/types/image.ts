@@ -41,13 +41,13 @@ export const API_ASPECT_RATIO_MAP: Record<AspectRatio, string> = {
   '9:16': '9:16',
 };
 
-// GPT Image 2용 size 매핑 (비율 기준, 화질은 size로 통합)
-export const GPT_SIZE_MAP: Record<AspectRatio, string> = {
-  '1:1': '1024x1024',
-  '3:2': '1536x1024',
-  '2:3': '1024x1536',
-  '16:9': '1536x864',
-  '9:16': '864x1536',
+// GPT Image 2용 size 매핑 (비율 × 화질)
+export const GPT_SIZE_MAP: Record<AspectRatio, Record<ImageSize, string>> = {
+  '1:1':  { '1K': '1024x1024', '2K': '2048x2048', '4K': '2048x2048' },
+  '3:2':  { '1K': '1536x1024', '2K': '2048x1152', '4K': '3840x2160' },
+  '2:3':  { '1K': '1024x1536', '2K': '1152x2048', '4K': '2160x3840' },
+  '16:9': { '1K': '1536x864',  '2K': '2048x1152', '4K': '3840x2160' },
+  '9:16': { '1K': '864x1536',  '2K': '1152x2048', '4K': '2160x3840' },
 };
 
 export const CSS_ASPECT_RATIO_MAP: Record<AspectRatio, string> = {

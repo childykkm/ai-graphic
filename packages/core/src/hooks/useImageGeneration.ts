@@ -363,7 +363,7 @@ export function useImageGeneration() {
           prompt: opts.activeTab === 'model'
             ? buildGptModelPrompt(opts, idx)
             : buildGptPrompt(opts),
-          size: GPT_SIZE_MAP[opts.aspectRatio],
+          size: GPT_SIZE_MAP[opts.aspectRatio][opts.imageSize],
           imageParts: req.contents.parts
             .filter((p: GeminiPart) => 'inlineData' in p && p.inlineData)
             .map((p: GeminiPart) => ({

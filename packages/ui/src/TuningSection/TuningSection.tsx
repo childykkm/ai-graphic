@@ -95,23 +95,23 @@ export function TuningSection({
         </div>
       </div>
 
-      {/* 출력 화질 - GPT 모델 선택 시 숨김 */}
-      {modelType !== 'gpt-image-2' && (
-        <div className="space-y-4">
-          <label className="text-sm font-bold text-gray-700 block">출력 화질 (해상도)</label>
-          <div className="grid grid-cols-3 gap-2">
-            {IMAGE_SIZES.map((s) => (
-              <button key={s} onClick={() => setImageSize(s)}
-                className={`py-3.5 rounded-xl text-sm font-bold transition-all border-2 ${imageSize === s ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
-                {s}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs font-semibold text-gray-400 leading-relaxed break-keep">
-            * 1K는 약 100만 화소(1024x1024), 2K는 약 400만 화소, 4K는 약 1600만 화소급의 초고해상도를 의미합니다. (1K도 HD(720p)보다 조금 더 선명하며, 2K는 일반적인 FHD(1080p)를 능가합니다.)
-          </p>
+      {/* 출력 화질 */}
+      <div className="space-y-4">
+        <label className="text-sm font-bold text-gray-700 block">출력 화질 (해상도)</label>
+        <div className="grid grid-cols-3 gap-2">
+          {IMAGE_SIZES.map((s) => (
+            <button key={s} onClick={() => setImageSize(s)}
+              className={`py-3.5 rounded-xl text-sm font-bold transition-all border-2 ${imageSize === s ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
+              {s}
+            </button>
+          ))}
         </div>
-      )}
+        <p className="text-xs font-semibold text-gray-400 leading-relaxed break-keep">
+          {modelType === 'gpt-image-2'
+            ? '* 1K는 최대 1536px, 2K는 최대 2048px, 4K는 최대 3840px 해상도로 생성됩니다.'
+            : '* 1K는 약 100만 화소(1024x1024), 2K는 약 400만 화소, 4K는 약 1600만 화소급의 초고해상도를 의미합니다. (1K도 HD(720p)보다 조금 더 선명하며, 2K는 일반적인 FHD(1080p)를 능가합니다.)'}
+        </p>
+      </div>
 
       {/* Graphic/Variation 전용: 한 장에 포함할 이미지 수 */}
       {(activeTab === 'graphic' || activeTab === 'variation') && setImagesPerShot && (
