@@ -23,6 +23,16 @@ export const formatFileDate = (ts: number): string => {
   return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
 };
 
+export const formatDownloadDate = (ts: number): string => {
+  const d = new Date(ts);
+  const yy = String(d.getFullYear()).slice(2);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yy}${mm}${dd}_${hh}${min}`;
+};
+
 export const downloadZip = async (
   images: Array<{ url: string }>,
   zipName: string,

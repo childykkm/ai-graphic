@@ -40,6 +40,7 @@ export default function VariationPage() {
     <PageShell
       activeTab="variation"
       onNavigate={(tab) => navigate(`/${tab}`)}
+      brandName={brandName} productName={productName}
       showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}

@@ -45,6 +45,7 @@ export default function FloorPage() {
     <PageShell
       activeTab="floor"
       onNavigate={(tab) => navigate(`/${tab}`)}
+      brandName={brandName} productName={productName}
       showPwdModal={showPwdModal} setShowPwdModal={setShowPwdModal}
       showErrorModal={showErrorModal} setShowErrorModal={setShowErrorModal}
       selectedFullscreen={selectedFullscreen} setSelectedFullscreen={setSelectedFullscreen}

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { LayoutGrid, Loader2, Maximize2, Download, Image as ImageIcon } from 'lucide-react';
 import type { GeneratedImage, AspectRatio, ActiveTab } from '@repo/core';
-import { CSS_ASPECT_RATIO_MAP } from '@repo/core';
+import { CSS_ASPECT_RATIO_MAP, formatDownloadDate } from '@repo/core';
 
 interface ResultsGalleryProps {
   results: GeneratedImage[];
@@ -10,6 +10,8 @@ interface ResultsGalleryProps {
   count: number;
   aspectRatio: AspectRatio;
   activeTab: ActiveTab;
+  brandName?: string;
+  productName?: string;
   onFullscreen: (url: string) => void;
   onDownloadSingle: (url: string, name: string) => void;
 }
@@ -28,15 +30,19 @@ export function ResultsGallery({
   count,
   aspectRatio,
   activeTab,
+  brandName = '',
+  productName = '',
   onFullscreen,
   onDownloadSingle,
 }: ResultsGalleryProps) {
-  const prefix =
-    activeTab === 'floor' ? 'floor_shot_' :
-    activeTab === 'concept' ? 'concept_shot_' :
-    activeTab === 'model' ? 'reference_model_shot_' :
-    activeTab === 'variation' ? 'variation_shot_' :
-    'graphic_shot_';
+  const dateStr = formatDownloadDate(Date.now());
+  const namePrefix = [brandName, productName, dateStr].filter(Boolean).join('_');
+  const tabLabel =
+    activeTab === 'floor' ? 'floor_shot' :
+    activeTab === 'concept' ? 'concept_shot' :
+    activeTab === 'model' ? 'model_shot' :
+    activeTab === 'variation' ? 'variation_shot' :
+    'graphic_shot';
 
   return (
     <div className="bg-white rounded-[2rem] p-10 min-h-[850px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/80 flex-1 flex flex-col">
@@ -100,7 +106,7 @@ export function ResultsGallery({
                             className="bg-white/20 text-white p-3 rounded-xl hover:bg-white/30 transition-colors backdrop-blur-sm">
                             <Maximize2 size={18} />
                           </button>
-                          <button onClick={() => onDownloadSingle(img.url, `model_shot_CUT0${slot.id + 1}`)}
+                          <button onClick={() => onDownloadSingle(img.url, `${namePrefix}_model_shot_CUT0${slot.id + 1}`)}
                             className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors shadow-lg">
                             <Download size={18} />저장
                           </button>
@@ -168,7 +174,7 @@ export function ResultsGallery({
                       <Maximize2 size={18} />
                     </button>
                     <button
-                      onClick={() => onDownloadSingle(img.url, `${prefix}${idx + 1}`)}
+                      onClick={() => onDownloadSingle(img.url, `${namePrefix}_${tabLabel}_${idx + 1}`)}
                       className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors shadow-lg"
                     >
                       <Download size={18} />

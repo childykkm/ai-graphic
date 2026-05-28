@@ -7,7 +7,7 @@ import { ResultsGallery } from '../ResultsGallery/ResultsGallery';
 import { GuideModal } from '../GuideModal/GuideModal';
 import { FullscreenViewer } from '../FullscreenViewer/FullscreenViewer';
 import type { AspectRatio, ActiveTab, GeneratedImage } from '@repo/core';
-import { downloadSingle, downloadZip } from '@repo/core';
+import { downloadSingle, downloadZip, formatDownloadDate } from '@repo/core';
 
 const NAV_ITEMS: { tab: ActiveTab; label: string }[] = [
   { tab: 'graphic', label: 'Graphic' },
@@ -20,6 +20,8 @@ const NAV_ITEMS: { tab: ActiveTab; label: string }[] = [
 interface PageShellProps {
   activeTab: ActiveTab;
   onNavigate: (tab: ActiveTab) => void;
+  brandName?: string;
+  productName?: string;
   showPwdModal: boolean;
   setShowPwdModal: (v: boolean) => void;
   showErrorModal: boolean;
@@ -41,6 +43,8 @@ interface PageShellProps {
 export function PageShell({
   activeTab,
   onNavigate,
+  brandName = '',
+  productName = '',
   showPwdModal, setShowPwdModal,
   showErrorModal, setShowErrorModal,
   selectedFullscreen, setSelectedFullscreen,
@@ -60,25 +64,21 @@ export function PageShell({
   }, [results.length, authenticated]);
 
   const downloadAll = async () => {
-    const zipName =
-      activeTab === 'floor' ? 'floor_shots.zip' :
-      activeTab === 'concept' ? 'concept_shots.zip' :
-      activeTab === 'model' ? 'model_shots.zip' :
-      activeTab === 'variation' ? 'variation_shots.zip' :
-      'graphic_shots.zip';
-    const prefix =
-      activeTab === 'floor' ? 'floor_shot_' :
-      activeTab === 'concept' ? 'concept_shot_' :
-      activeTab === 'model' ? 'model_shot_' :
-      activeTab === 'variation' ? 'variation_shot_' :
-      'graphic_shot_';
+    const dateStr = formatDownloadDate(Date.now());
+    const prefix = [brandName, productName, dateStr].filter(Boolean).join('_');
+    const tabLabel =
+      activeTab === 'floor' ? 'floor_shot' :
+      activeTab === 'concept' ? 'concept_shot' :
+      activeTab === 'model' ? 'model_shot' :
+      activeTab === 'variation' ? 'variation_shot' :
+      'graphic_shot';
+    const zipName = `${prefix}_${tabLabel}.zip`;
 
-    // model 탭은 shotIndex 기준으로 정렬하여 CUT01~04 순서 보장
     const ordered = activeTab === 'model'
       ? [...results].sort((a, b) => (a.shotIndex ?? 0) - (b.shotIndex ?? 0))
       : results;
 
-    await downloadZip(ordered, zipName, (i) => `${prefix}CUT0${i + 1}.png`);
+    await downloadZip(ordered, zipName, (i) => `CUT0${i + 1}.png`);
   };
 
   const headerActions = (
@@ -167,6 +167,7 @@ export function PageShell({
           <ResultsGallery
             results={results} isGenerating={isGenerating} progress={progress}
             count={count} aspectRatio={aspectRatio} activeTab={activeTab}
+            brandName={brandName} productName={productName}
             onFullscreen={setSelectedFullscreen} onDownloadSingle={downloadSingle}
           />
         </div>
