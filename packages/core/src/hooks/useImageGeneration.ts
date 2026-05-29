@@ -143,7 +143,18 @@ function buildGptModelPrompt(opts: GenerationOptions, shotIndex: number): string
   return shot.prompt(bgColor, opts.customPrompt);
 }
 
-function buildGptPrompt(opts: GenerationOptions): string {
+const FLOOR_SHOT_TYPES = [
+  'Front view — full garment showing the entire front side clearly.',
+  'Rear view — full garment showing the entire back side clearly.',
+  'Side detail shot — close-up of pocket shape, pocket stitching, and side seam detail.',
+  'Logo/label detail shot — extreme close-up of the brand logo, label, or tag on the garment.',
+  'Fabric texture shot — extreme close-up of the fabric surface showing grain, washing effect, and tactile texture.',
+  'Hem/cuff detail shot — close-up of the bottom hem or sleeve cuff showing edge finish and stitching.',
+  'Waistline detail shot — close-up of the waistband, belt loops, and top stitching.',
+  'Rise detail shot — close-up of the crotch rise area showing seam construction and fabric behavior.',
+];
+
+function buildGptPrompt(opts: GenerationOptions, shotIndex = 0): string {
   const { activeTab, customPrompt, floorStyle, floorBgColor, modelBgColor,
     gazeVariation, poseVariation, viewVariation, imagesPerShot } = opts;
 
@@ -173,7 +184,16 @@ function buildGptPrompt(opts: GenerationOptions): string {
   if (activeTab === 'floor') {
     const styleMap = { hanger: 'hanging on a hanger', folded: 'neatly folded', spread: 'laid flat and spread out' };
     const style = styleMap[floorStyle as keyof typeof styleMap] ?? 'laid flat';
-    return `${custom}High-quality photorealistic product shot of the clothing item ${style}. Solid ${floorBgColor} background. Accurately reproduce all garment details, logos, and fabric texture from the reference images. No model, no text or watermarks.`;
+    const shotDesc = FLOOR_SHOT_TYPES[shotIndex % FLOOR_SHOT_TYPES.length];
+    return `${custom}THIS IS CUT #${shotIndex + 1} OF A SERIES. YOU MUST GENERATE THIS SPECIFIC SHOT: ${shotDesc} The garment is ${style}. Solid ${floorBgColor} background.
+
+DO NOT generate a front view unless this is cut #1. Each cut in this series must show a DIFFERENT angle or detail. Strictly follow the shot description above.
+
+CRITICAL: Exactly 1 image, 1 composition, 1 product. No collage, no split layout.
+
+Reproduce from reference: fabric texture, grain, washing, stitching, wrinkles with maximum realism. No smoothing. Match color tone to reference.
+
+Photorealistic only. Solid background. No text, no watermarks.`;
   }
 
   if (activeTab === 'variation') {
@@ -362,7 +382,7 @@ export function useImageGeneration() {
           model: API_MODEL_MAP[opts.modelType],
           prompt: opts.activeTab === 'model'
             ? buildGptModelPrompt(opts, idx)
-            : buildGptPrompt(opts),
+            : buildGptPrompt(opts, idx),
           size: GPT_SIZE_MAP[opts.aspectRatio][opts.imageSize],
           imageParts: req.contents.parts
             .filter((p: GeminiPart) => 'inlineData' in p && p.inlineData)

@@ -3,6 +3,31 @@ import type { ImageResult } from '../types/api';
 import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
 
 const RETRY_DELAYS = [1000, 2000, 4000];
+const MAX_BYTES = 4 * 1024 * 1024;
+
+async function resizeToUnder4MB(base64: string, mimeType: string): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let scale = 1;
+      const tryRender = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.floor(img.width * scale);
+        canvas.height = Math.floor(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('PNG 변환 실패'));
+          if (blob.size <= MAX_BYTES || scale < 0.1) return resolve(blob);
+          scale *= 0.8;
+          tryRender();
+        }, 'image/png');
+      };
+      tryRender();
+    };
+    img.onerror = reject;
+    img.src = `data:${mimeType};base64,${base64}`;
+  });
+}
 
 export interface OpenAIGenerateRequest {
   model: string;
@@ -120,19 +145,9 @@ export class OpenAIClient {
       if (request.imageParts && request.imageParts.length > 0) {
         // images.edit — 이미지 + 텍스트
         const imageFiles = await Promise.all(
-          request.imageParts.map((img, idx) => {
-            const byteString = atob(img.data);
-            const bytes = new Uint8Array(byteString.length);
-            for (let i = 0; i < byteString.length; i++) {
-              bytes[i] = byteString.charCodeAt(i);
-            }
-            // 실제 mimeType 유지 (jpeg/webp 등)
-            const mimeType = img.mimeType || 'image/png';
-            const ext = mimeType === 'image/jpeg' ? 'jpg'
-              : mimeType === 'image/webp' ? 'webp'
-              : 'png';
-            const blob = new Blob([bytes], { type: mimeType });
-            return toFile(blob, `image_${idx}.${ext}`, { type: mimeType });
+          request.imageParts.map(async (img, idx) => {
+            const blob = await resizeToUnder4MB(img.data, img.mimeType);
+            return toFile(blob, `image_${idx}.png`, { type: 'image/png' });
           })
         );
 
