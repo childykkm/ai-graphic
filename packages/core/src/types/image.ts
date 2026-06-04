@@ -16,10 +16,14 @@ export type ImageTarget =
   | 'conceptObject'
   | 'floorFront'
   | 'floorBack'
+  | 'floorNeckline'
   | 'floorLogo'
   | 'floorDetail'
   | 'modelReference'
-  | 'variation';
+  | 'variation'
+  | 'variationNeckline'
+  | 'variationLogo'
+  | 'variationDetail';
 
 export interface UploadedImage {
   id: string;

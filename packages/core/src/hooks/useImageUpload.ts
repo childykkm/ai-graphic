@@ -15,10 +15,14 @@ const MAX_COUNTS: Partial<Record<ImageTarget, number>> = {
   conceptObject: 5,
   floorFront: 2,
   floorBack: 2,
-  floorLogo: 2,
+  floorNeckline: 3,
+  floorLogo: 3,
   floorDetail: 10,
   modelReference: 5,
   variation: 5,
+  variationNeckline: 3,
+  variationLogo: 3,
+  variationDetail: 10,
 };
 
 const ERROR_MESSAGES: Partial<Record<ImageTarget, string>> = {
@@ -34,31 +38,41 @@ const ERROR_MESSAGES: Partial<Record<ImageTarget, string>> = {
   conceptObject: '오브젝트 이미지는 최대 5개까지만 업로드할 수 있습니다.',
   floorFront: '정면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
   floorBack: '후면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
-  floorLogo: '로고 이미지는 최대 2개까지만 업로드할 수 있습니다.',
+  floorNeckline: '넥라인 이미지는 최대 3개까지만 업로드할 수 있습니다.',
+  floorLogo: '로고 이미지는 최대 3개까지만 업로드할 수 있습니다.',
   floorDetail: '세부 디테일 이미지는 최대 10개까지만 업로드할 수 있습니다.',
   modelReference: '레퍼런스 모델 이미지는 최대 5개까지만 업로드할 수 있습니다.',
   variation: 'AI 변주용 이미지는 최대 5개까지만 업로드할 수 있습니다.',
+  variationNeckline: '넥라인 이미지는 최대 3개까지만 업로드할 수 있습니다.',
+  variationLogo: '로고 이미지는 최대 3개까지만 업로드할 수 있습니다.',
+  variationDetail: '디테일 이미지는 최대 10개까지만 업로드할 수 있습니다.',
+};
+
+const INITIAL_IMAGES: Record<ImageTarget, UploadedImage[]> = {
+  graphicFront: [],
+  graphicBack: [],
+  graphicNeckline: [],
+  graphicLogo: [],
+  graphicDetail: [],
+  graphicOther: [],
+  reference: [],
+  background: [],
+  conceptReference: [],
+  conceptObject: [],
+  floorFront: [],
+  floorBack: [],
+  floorNeckline: [],
+  floorLogo: [],
+  floorDetail: [],
+  modelReference: [],
+  variation: [],
+  variationNeckline: [],
+  variationLogo: [],
+  variationDetail: [],
 };
 
 export function useImageUpload(onError: (msg: string) => void) {
-  const [images, setImages] = useState<Record<ImageTarget, UploadedImage[]>>({
-    graphicFront: [],
-    graphicBack: [],
-    graphicNeckline: [],
-    graphicLogo: [],
-    graphicDetail: [],
-    graphicOther: [],
-    reference: [],
-    background: [],
-    conceptReference: [],
-    conceptObject: [],
-    floorFront: [],
-    floorBack: [],
-    floorLogo: [],
-    floorDetail: [],
-    modelReference: [],
-    variation: [],
-  });
+  const [images, setImages] = useState<Record<ImageTarget, UploadedImage[]>>(INITIAL_IMAGES);
 
   const refs: Record<ImageTarget, React.RefObject<HTMLInputElement | null>> = {
     graphicFront: useRef<HTMLInputElement>(null),
@@ -73,10 +87,14 @@ export function useImageUpload(onError: (msg: string) => void) {
     conceptObject: useRef<HTMLInputElement>(null),
     floorFront: useRef<HTMLInputElement>(null),
     floorBack: useRef<HTMLInputElement>(null),
+    floorNeckline: useRef<HTMLInputElement>(null),
     floorLogo: useRef<HTMLInputElement>(null),
     floorDetail: useRef<HTMLInputElement>(null),
     modelReference: useRef<HTMLInputElement>(null),
     variation: useRef<HTMLInputElement>(null),
+    variationNeckline: useRef<HTMLInputElement>(null),
+    variationLogo: useRef<HTMLInputElement>(null),
+    variationDetail: useRef<HTMLInputElement>(null),
   };
 
   const processFiles = async (files: FileList | null, target: ImageTarget = 'graphicFront') => {
@@ -109,24 +127,7 @@ export function useImageUpload(onError: (msg: string) => void) {
   };
 
   const resetAll = () => {
-    setImages({
-      graphicFront: [],
-      graphicBack: [],
-      graphicNeckline: [],
-      graphicLogo: [],
-      graphicDetail: [],
-      graphicOther: [],
-      reference: [],
-      background: [],
-      conceptReference: [],
-      conceptObject: [],
-      floorFront: [],
-      floorBack: [],
-      floorLogo: [],
-      floorDetail: [],
-      modelReference: [],
-      variation: [],
-    });
+    setImages({ ...INITIAL_IMAGES });
     Object.values(refs).forEach((ref) => {
       if (ref.current) ref.current.value = '';
     });

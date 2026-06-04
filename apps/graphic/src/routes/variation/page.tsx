@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Image as ImageIcon, Settings2 } from 'lucide-react';
+import { Upload, Image as ImageIcon, Settings2 } from 'lucide-react';
 import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, useHistorySave } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
 import type { BrandName } from '@repo/ui';
 
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
+
+const VARIATION_DETAIL_SECTIONS = [
+  { key: 'variationNeckline' as const, title: '넥라인 이미지',   max: 3,  target: 'variationNeckline' as const, placeholder: '넥라인(칼라/목 부위) 사진 드롭 또는 클릭' },
+  { key: 'variationLogo' as const,     title: '로고 이미지',     max: 3,  target: 'variationLogo' as const,     placeholder: '로고/브랜드 사진 드롭 또는 클릭' },
+  { key: 'variationDetail' as const,   title: '디테일 이미지',   max: 10, target: 'variationDetail' as const,   placeholder: '디테일 사진 드롭 또는 클릭' },
+];
 
 export default function VariationPage() {
   const [brandName, setBrandName] = useState<BrandName>('');
@@ -72,6 +78,24 @@ export default function VariationPage() {
           aspectRatios={ASPECT_RATIOS}
         />
       </CollapsibleSection>
+
+      {/* 넥라인 / 로고 / 디테일 */}
+      {VARIATION_DETAIL_SECTIONS.map(({ key, title, max, target, placeholder }) => (
+        <CollapsibleSection key={key}
+          open={openSections[key]} onToggle={() => toggle(key)}
+          icon={<Upload size={24} className="text-orange-500" />} iconBg="bg-orange-50"
+          title={title}
+          subtitle={images[target].length > 0 ? `입력 완료 (${images[target].length}장)` : `입력 전 (최대 ${max}장)`}
+          subtitleColor={images[target].length > 0 ? 'text-orange-500' : 'text-gray-400'}
+        >
+          <ImageUploader
+            images={images[target]} target={target} maxCount={max}
+            inputRef={refs[target]} onFiles={processFiles} onRemove={removeImage}
+            onFullscreen={setSelectedFullscreen}
+            placeholder={placeholder} variant="list" hoverColor="orange"
+          />
+        </CollapsibleSection>
+      ))}
 
       {/* AI 변주용 이미지 */}
       <CollapsibleSection

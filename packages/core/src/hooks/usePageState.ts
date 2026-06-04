@@ -7,15 +7,15 @@ type SectionKey =
   | 'graphicFront' | 'graphicBack' | 'graphicNeckline' | 'graphicLogo' | 'graphicDetail' | 'graphicOther'
   | 'config' | 'reference' | 'background'
   | 'conceptReference' | 'conceptObject'
-  | 'floorFront' | 'floorBack' | 'floorLogo' | 'floorDetail'
-  | 'modelReference' | 'variationImages';
+  | 'floorFront' | 'floorBack' | 'floorNeckline' | 'floorLogo' | 'floorDetail'
+  | 'modelReference' | 'variationImages' | 'variationNeckline' | 'variationLogo' | 'variationDetail';
 
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
   graphicFront: true, graphicBack: true, graphicNeckline: true, graphicLogo: true, graphicDetail: true, graphicOther: true,
   config: false, reference: false, background: false,
   conceptReference: true, conceptObject: false,
-  floorFront: true, floorBack: true, floorLogo: true, floorDetail: true,
-  modelReference: true, variationImages: true,
+  floorFront: true, floorBack: true, floorNeckline: true, floorLogo: true, floorDetail: true,
+  modelReference: true, variationImages: true, variationNeckline: true, variationLogo: true, variationDetail: true,
 };
 
 export function usePageState(activeTab: ActiveTab) {
@@ -45,14 +45,15 @@ export function usePageState(activeTab: ActiveTab) {
 
   const handleGenerate = (runGenerate: () => void) => {
     if (activeTab === 'floor') {
-      const hasFloor = images.floorFront.length > 0 || images.floorBack.length > 0 || images.floorLogo.length > 0 || images.floorDetail.length > 0;
+      const hasFloor = images.floorFront.length > 0 || images.floorBack.length > 0 || images.floorNeckline.length > 0 || images.floorLogo.length > 0 || images.floorDetail.length > 0;
       if (!hasFloor) { setShowErrorModal(true); return; }
     } else if (activeTab === 'concept') {
       if (images.conceptReference.length === 0) { setShowErrorModal(true); return; }
     } else if (activeTab === 'model') {
       if (images.modelReference.length === 0) { setShowErrorModal(true); return; }
     } else if (activeTab === 'variation') {
-      if (images.variation.length === 0) { setShowErrorModal(true); return; }
+      const hasVariation = images.variation.length > 0 || images.variationNeckline.length > 0 || images.variationLogo.length > 0 || images.variationDetail.length > 0;
+      if (!hasVariation) { setShowErrorModal(true); return; }
     } else {
       const hasGraphic = images.graphicFront.length > 0 || images.graphicBack.length > 0 || images.graphicNeckline.length > 0 || images.graphicLogo.length > 0 || images.graphicDetail.length > 0 || images.graphicOther.length > 0;
       if (!hasGraphic) { setShowErrorModal(true); return; }
@@ -77,10 +78,14 @@ export function usePageState(activeTab: ActiveTab) {
       conceptObjImages: images.conceptObject,
       floorFrontImages: images.floorFront,
       floorBackImages: images.floorBack,
+      floorNecklineImages: images.floorNeckline,
       floorLogoImages: images.floorLogo,
       floorDetailImages: images.floorDetail,
       modelReferenceImages: images.modelReference,
       variationImages: images.variation,
+      variationNecklineImages: images.variationNeckline,
+      variationLogoImages: images.variationLogo,
+      variationDetailImages: images.variationDetail,
     }).then(() => {
       if (error) setShowErrorModal(true);
     });
@@ -89,10 +94,10 @@ export function usePageState(activeTab: ActiveTab) {
   const isGenerateDisabled =
     isGenerating ||
     (activeTab === 'graphic' && images.graphicFront.length === 0 && images.graphicBack.length === 0 && images.graphicNeckline.length === 0 && images.graphicLogo.length === 0 && images.graphicDetail.length === 0 && images.graphicOther.length === 0) ||
-    (activeTab === 'floor' && images.floorFront.length === 0 && images.floorBack.length === 0 && images.floorLogo.length === 0 && images.floorDetail.length === 0) ||
+    (activeTab === 'floor' && images.floorFront.length === 0 && images.floorBack.length === 0 && images.floorNeckline.length === 0 && images.floorLogo.length === 0 && images.floorDetail.length === 0) ||
     (activeTab === 'concept' && images.conceptReference.length === 0) ||
     (activeTab === 'model' && images.modelReference.length === 0) ||
-    (activeTab === 'variation' && images.variation.length === 0);
+    (activeTab === 'variation' && images.variation.length === 0 && images.variationNeckline.length === 0 && images.variationLogo.length === 0 && images.variationDetail.length === 0);
 
   return {
     openSections, toggle,

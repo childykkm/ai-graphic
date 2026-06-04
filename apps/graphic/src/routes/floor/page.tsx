@@ -9,10 +9,11 @@ import type { BrandName } from '@repo/ui';
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
 
 const FLOOR_SECTIONS = [
-  { key: 'floorFront' as const, title: '정면 이미지', max: 2, target: 'floorFront' as const },
-  { key: 'floorBack' as const, title: '후면 이미지', max: 2, target: 'floorBack' as const },
-  { key: 'floorLogo' as const, title: '로고 이미지', max: 2, target: 'floorLogo' as const },
-  { key: 'floorDetail' as const, title: '세부 디테일 이미지', max: 10, target: 'floorDetail' as const },
+  { key: 'floorFront' as const,    title: '정면 이미지',       max: 2,  target: 'floorFront' as const },
+  { key: 'floorBack' as const,     title: '후면 이미지',       max: 2,  target: 'floorBack' as const },
+  { key: 'floorNeckline' as const, title: '넥라인 이미지',     max: 3,  target: 'floorNeckline' as const },
+  { key: 'floorLogo' as const,     title: '로고 이미지',       max: 3,  target: 'floorLogo' as const },
+  { key: 'floorDetail' as const,   title: '세부 디테일 이미지', max: 10, target: 'floorDetail' as const },
 ];
 
 export default function FloorPage() {
