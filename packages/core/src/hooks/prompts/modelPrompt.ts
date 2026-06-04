@@ -27,6 +27,7 @@ export function getColorName(hex: string): string {
 
 interface ModelPromptOptions {
   customPrompt: string;
+  negativePrompt: string;
   modelBgColor: string;
   modelReferenceImages: UploadedImage[];
 }
@@ -47,6 +48,7 @@ export function buildModelGeminiParts(opts: ModelPromptOptions, shotIndex: numbe
   prompt += `- 이 이미지 파일 안에는 오직 단 1개의 컷, 단 1명의 피사체만 단독 존재해야 합니다. 콜라주나 분할 격자 형태는 절대로 금지합니다.\n`;
   prompt += `- 이미지 내부 및 가장자리에 불필요한 텍스트, 워터마크, 로고가 포함되어서는 절대 안 됩니다.\n`;
   if (opts.customPrompt) prompt += `\n[기본 요청 사항 (선택)]: ${opts.customPrompt}`;
+  if (opts.negativePrompt) prompt += `\n[제외 지침]: 다음 사항은 절대 포함하지 마세요 — ${opts.negativePrompt}`;
 
   parts.push({ text: `[레퍼런스 모델 예시 사진] 다음 사진의 인물과 옷차림을 철저하게 분석하여 일치된 이미지로 생성하시오.` });
   opts.modelReferenceImages.forEach((img) => {
@@ -66,5 +68,6 @@ const GPT_MODEL_SHOTS = [
 export function buildModelGptPrompt(opts: ModelPromptOptions, shotIndex: number): string {
   const shot = GPT_MODEL_SHOTS[shotIndex];
   const bgColor = opts.modelBgColor === '#FFFFFF' ? 'white' : opts.modelBgColor;
-  return shot.prompt(bgColor, opts.customPrompt);
+  const negative = opts.negativePrompt ? ` Strictly avoid: ${opts.negativePrompt}.` : '';
+  return shot.prompt(bgColor, opts.customPrompt) + negative;
 }

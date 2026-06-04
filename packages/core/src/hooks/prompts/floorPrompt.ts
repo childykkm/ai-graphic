@@ -5,6 +5,8 @@ import {
   IMAGE_PART_LABELS,
   GPT_DETAIL_INSTRUCTIONS,
   buildLayoutPrompt,
+  buildProductMetaPrompt,
+  buildProductMetaPromptEn,
   pushImageParts,
 } from './shared';
 
@@ -34,6 +36,10 @@ const FLOOR_STYLE_LABEL_EN: Record<FloorStyle, string> = {
 interface FloorPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
+  negativePrompt: string;
+  material: string;
+  fit: string;
+  colorSwatch: string;
   floorStyle: FloorStyle;
   floorBgColor: string;
   floorFrontImages: UploadedImage[];
@@ -52,6 +58,7 @@ export function buildFloorGeminiParts(opts: FloorPromptOptions): { parts: Gemini
 
   let prompt = `[업로드된 상품 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 의류 아이템을 정확히 인식하여 상품 상세 페이지에 적합한 "바닥컷(Floor cut)" 형태로 렌더링하세요.`;
   prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT;
+  prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
   prompt += `\n[바닥컷 스타일]: 반드시 [${FLOOR_STYLE_LABEL[opts.floorStyle]}] 형태로 생성하세요.`;
   prompt += `\n[배경 지침]: 배경은 지정된 단일 색상(Hex Color Code: ${opts.floorBgColor})의 솔리드 컬러로 깔끔하게 처리하세요.`;
   if (opts.customPrompt) prompt += `\n[기본 요청 사항]: ${opts.customPrompt}`;
@@ -72,8 +79,9 @@ export function buildFloorGptPrompt(opts: FloorPromptOptions, shotIndex: number)
   const neckline = opts.floorNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.floorLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.floorDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
+  const meta     = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
 
-  return `${custom}THIS IS CUT #${shotIndex + 1} OF A SERIES. YOU MUST GENERATE THIS SPECIFIC SHOT: ${shotDesc} The garment is ${style}. Solid ${opts.floorBgColor} background. ${neckline}${logo}${detail}
+  return `${custom}THIS IS CUT #${shotIndex + 1} OF A SERIES. YOU MUST GENERATE THIS SPECIFIC SHOT: ${shotDesc} The garment is ${style}. Solid ${opts.floorBgColor} background. ${neckline}${logo}${detail}${meta}
 DO NOT generate a front view unless this is cut #1. Each cut in this series must show a DIFFERENT angle or detail. Strictly follow the shot description above.
 
 CRITICAL: Exactly 1 image, 1 composition, 1 product. No collage, no split layout.

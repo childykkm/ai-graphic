@@ -7,12 +7,18 @@ import {
   buildLayoutPrompt,
   buildVariationPrompts,
   buildVariationPromptsEn,
+  buildProductMetaPrompt,
+  buildProductMetaPromptEn,
   pushImageParts,
 } from './shared';
 
 interface VariationPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
+  negativePrompt: string;
+  material: string;
+  fit: string;
+  colorSwatch: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;
@@ -32,7 +38,9 @@ export function buildVariationGeminiParts(opts: VariationPromptOptions): { parts
     opts.variationLogoImages.length + opts.variationDetailImages.length;
 
   let prompt = `[업로드된 원본 참고 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 패션 아이템/인물/컨셉의 요소를 정확히 파악하여, 다양한 자세(pose), 시선(gaze) 및 카메라 앵글(view)로 극적인 변주(Variation)를 준 새로운 화보 컷을 생성해 주세요. 기존 아이템 고유의 핵심 형태나 디자인은 유지하되, 자세와 레이아웃을 완전히 새롭게 하여 창의적으로 재해석되어야 합니다.`;
-  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT + gazePrompt + posePrompt + viewPrompt;
+  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT;
+  prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
+  prompt += gazePrompt + posePrompt + viewPrompt;
   if (opts.customPrompt) prompt += `\n[기본 요청 사항 (선택)]: ${opts.customPrompt}`;
 
   opts.variationImages.forEach((img) => {
@@ -55,6 +63,7 @@ export function buildVariationGptPrompt(opts: VariationPromptOptions): string {
   const neckline = opts.variationNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.variationLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.variationDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
+  const meta     = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
 
-  return `${custom}High-quality photorealistic fashion variation shot. Keep the core design and identity of the clothing from the reference. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}No text or watermarks.`;
+  return `${custom}High-quality photorealistic fashion variation shot. Keep the core design and identity of the clothing from the reference. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}${meta}No text or watermarks.`;
 }

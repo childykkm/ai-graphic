@@ -23,6 +23,10 @@ export default function FloorPage() {
   const {
     openSections, toggle,
     customPrompt, setCustomPrompt,
+    negativePrompt, setNegativePrompt,
+    material, setMaterial,
+    fit, setFit,
+    colorSwatch, setColorSwatch,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     count, setCount,
@@ -67,6 +71,10 @@ export default function FloorPage() {
         <TuningSection
           activeTab="floor"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
+          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          material={material} setMaterial={setMaterial}
+          fit={fit} setFit={setFit}
+          colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}

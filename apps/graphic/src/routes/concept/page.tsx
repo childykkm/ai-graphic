@@ -15,6 +15,7 @@ export default function ConceptPage() {
   const {
     openSections, toggle,
     customPrompt, setCustomPrompt,
+    negativePrompt, setNegativePrompt,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     count, setCount,
@@ -57,6 +58,10 @@ export default function ConceptPage() {
         <TuningSection
           activeTab="concept"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
+          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          material="" setMaterial={() => {}}
+          fit="" setFit={() => {}}
+          colorSwatch="" setColorSwatch={() => {}}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}

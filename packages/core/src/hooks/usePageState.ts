@@ -21,6 +21,10 @@ const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
 export function usePageState(activeTab: ActiveTab) {
   const [openSections, setOpenSections] = useState(DEFAULT_SECTIONS);
   const [customPrompt, setCustomPrompt] = useState('');
+  const [negativePrompt, setNegativePrompt] = useState('');
+  const [material, setMaterial] = useState('');
+  const [fit, setFit] = useState('');
+  const [colorSwatch, setColorSwatch] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('2:3');
   const [imageSize, setImageSize] = useState<ImageSize>('2K');
   const [imagesPerShot, setImagesPerShot] = useState(1);
@@ -64,7 +68,8 @@ export function usePageState(activeTab: ActiveTab) {
   const runGenerate = () => {
     generate({
       activeTab, count, aspectRatio, imageSize, imagesPerShot,
-      customPrompt, gazeVariation, poseVariation, viewVariation,
+      customPrompt, negativePrompt, material, fit, colorSwatch,
+      gazeVariation, poseVariation, viewVariation,
       floorStyle, floorBgColor, modelType, modelBgColor,
       graphicFrontImages: images.graphicFront,
       graphicBackImages: images.graphicBack,
@@ -102,6 +107,10 @@ export function usePageState(activeTab: ActiveTab) {
   return {
     openSections, toggle,
     customPrompt, setCustomPrompt,
+    negativePrompt, setNegativePrompt,
+    material, setMaterial,
+    fit, setFit,
+    colorSwatch, setColorSwatch,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,

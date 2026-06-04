@@ -7,12 +7,18 @@ import {
   buildLayoutPrompt,
   buildVariationPrompts,
   buildVariationPromptsEn,
+  buildProductMetaPrompt,
+  buildProductMetaPromptEn,
   pushImageParts,
 } from './shared';
 
 interface GraphicPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
+  negativePrompt: string;
+  material: string;
+  fit: string;
+  colorSwatch: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;
@@ -37,7 +43,9 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
     opts.graphicDetailImages.length + opts.graphicOtherImages.length;
 
   let prompt = `[업로드된 상품 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 패션 아이템/상품을 정확히 인식하고, 가장 완성도 높은 화보(룩북) 컷으로 렌더링하세요. 상품의 디테일과 특징이 왜곡되지 않아야 합니다.`;
-  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT + gazePrompt + posePrompt + viewPrompt;
+  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT;
+  prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
+  prompt += gazePrompt + posePrompt + viewPrompt;
   if (opts.customPrompt) prompt += `\n[기본 요청 사항 - 이 지침을 반드시 최우선으로 따를 것]: ${opts.customPrompt}`;
   if (opts.refModelImages.length > 0) {
     prompt += `\n주의: 최대 5개의 인물 예시 이미지가 제공되었습니다. 새롭게 만들어지는 모델의 체형과 외모는 오직 이 예시 이미지들의 모델을 최우선으로 반영하여 통일성 있게 생성하세요.`;
@@ -58,7 +66,7 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
   return { parts, prompt };
 }
 
-export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPrompt' | 'imagesPerShot' | 'gazeVariation' | 'poseVariation' | 'viewVariation' | 'graphicNecklineImages' | 'graphicLogoImages' | 'graphicDetailImages'>): string {
+export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPrompt' | 'negativePrompt' | 'material' | 'fit' | 'colorSwatch' | 'imagesPerShot' | 'gazeVariation' | 'poseVariation' | 'viewVariation' | 'graphicNecklineImages' | 'graphicLogoImages' | 'graphicDetailImages'>): string {
   const { gazeEn, poseEn, viewEn } = buildVariationPromptsEn(opts.gazeVariation, opts.poseVariation, opts.viewVariation);
   const custom = opts.customPrompt ? `${opts.customPrompt}. ` : '';
   const layout = opts.imagesPerShot > 1
@@ -67,6 +75,7 @@ export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPr
   const neckline = opts.graphicNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.graphicLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.graphicDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
+  const meta     = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
 
-  return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}No text or watermarks.`;
+  return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}${meta}No text or watermarks.`;
 }

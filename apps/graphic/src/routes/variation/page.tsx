@@ -21,6 +21,10 @@ export default function VariationPage() {
   const {
     openSections, toggle,
     customPrompt, setCustomPrompt,
+    negativePrompt, setNegativePrompt,
+    material, setMaterial,
+    fit, setFit,
+    colorSwatch, setColorSwatch,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,
@@ -67,6 +71,10 @@ export default function VariationPage() {
         <TuningSection
           activeTab="variation"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
+          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          material={material} setMaterial={setMaterial}
+          fit={fit} setFit={setFit}
+          colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           imagesPerShot={imagesPerShot} setImagesPerShot={setImagesPerShot}

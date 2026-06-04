@@ -16,6 +16,10 @@ export interface GenerationOptions {
   imageSize: ImageSize;
   imagesPerShot: number;
   customPrompt: string;
+  negativePrompt: string;
+  material: string;
+  fit: string;
+  colorSwatch: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;

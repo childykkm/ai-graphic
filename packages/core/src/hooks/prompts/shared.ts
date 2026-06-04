@@ -91,6 +91,24 @@ export function buildVariationPromptsEn(gaze: number, pose: number, view: number
   };
 }
 
+export function buildProductMetaPrompt(material: string, fit: string, colorSwatch: string, negativePrompt: string): string {
+  let prompt = '';
+  if (material) prompt += `\n[소재 지침]: 이 의류의 소재는 "${material}"입니다. 해당 소재 특유의 질감, 광택, 드레이프, 구김 등을 사실적으로 표현하세요.`;
+  if (fit) prompt += `\n[핏 지침]: 이 의류의 핏은 "${fit}"입니다. 해당 핏의 실루엣, 여유량, 어깨선, 떨어지는 느낌을 정확히 표현하세요.`;
+  if (colorSwatch) prompt += `\n[컬러 지침]: 이 의류의 주요 컬러는 "${colorSwatch}"입니다. 이 컬러를 최우선으로 정확하게 재현하세요. 밝기나 채도를 임의로 변경하지 마세요.`;
+  if (negativePrompt) prompt += `\n[제외 지침]: 다음 사항은 절대 포함하지 마세요 — ${negativePrompt}`;
+  return prompt;
+}
+
+export function buildProductMetaPromptEn(material: string, fit: string, colorSwatch: string, negativePrompt: string): string {
+  let prompt = '';
+  if (material) prompt += ` Material: ${material} — reproduce the exact texture, sheen, drape, and wrinkle behavior of this fabric realistically.`;
+  if (fit) prompt += ` Fit: ${fit} — accurately represent the silhouette, ease, shoulder drop, and overall hang of this fit.`;
+  if (colorSwatch) prompt += ` Primary color is "${colorSwatch}" — reproduce this color with maximum accuracy, do not alter brightness or saturation arbitrarily.`;
+  if (negativePrompt) prompt += ` Strictly avoid: ${negativePrompt}.`;
+  return prompt;
+}
+
 export function pushImageParts(
   parts: GeminiPart[],
   label: string,

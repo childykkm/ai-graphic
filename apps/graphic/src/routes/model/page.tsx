@@ -15,6 +15,7 @@ export default function ModelPage() {
   const {
     openSections, toggle,
     customPrompt, setCustomPrompt,
+    negativePrompt, setNegativePrompt,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     modelType, setModelType,
@@ -57,6 +58,10 @@ export default function ModelPage() {
         <TuningSection
           activeTab="model"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
+          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          material="" setMaterial={() => {}}
+          fit="" setFit={() => {}}
+          colorSwatch="" setColorSwatch={() => {}}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           modelType={modelType} setModelType={setModelType}

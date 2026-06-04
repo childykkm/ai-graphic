@@ -23,6 +23,10 @@ export default function GraphicPage() {
   const state = usePageState('graphic');
   const {    openSections, toggle,
     customPrompt, setCustomPrompt,
+    negativePrompt, setNegativePrompt,
+    material, setMaterial,
+    fit, setFit,
+    colorSwatch, setColorSwatch,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,
@@ -69,6 +73,10 @@ export default function GraphicPage() {
         <TuningSection
           activeTab="graphic"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
+          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          material={material} setMaterial={setMaterial}
+          fit={fit} setFit={setFit}
+          colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           imagesPerShot={imagesPerShot} setImagesPerShot={setImagesPerShot}
