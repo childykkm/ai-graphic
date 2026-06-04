@@ -9,10 +9,12 @@ import type { BrandName } from '@repo/ui';
 const ASPECT_RATIOS: AspectRatio[] = ['1:1', '3:2', '2:3', '16:9', '9:16'];
 
 const GRAPHIC_SECTIONS = [
-  { key: 'graphicFront' as const, title: '정면 이미지', max: 2, target: 'graphicFront' as const, placeholder: '정면 사진 드롭 또는 클릭' },
-  { key: 'graphicBack' as const, title: '후면 이미지', max: 2, target: 'graphicBack' as const, placeholder: '후면 사진 드롭 또는 클릭' },
-  { key: 'graphicDetail' as const, title: '디테일 이미지', max: 10, target: 'graphicDetail' as const, placeholder: '디테일 사진 드롭 또는 클릭' },
-  { key: 'graphicOther' as const, title: '기타 착장 이미지', max: 5, target: 'graphicOther' as const, placeholder: '기타 착장 사진(바지, 신발 등) 드롭 또는 클릭' },
+  { key: 'graphicFront' as const,    title: '정면 이미지',       max: 2,  target: 'graphicFront' as const,    placeholder: '정면 사진 드롭 또는 클릭' },
+  { key: 'graphicBack' as const,     title: '후면 이미지',       max: 2,  target: 'graphicBack' as const,     placeholder: '후면 사진 드롭 또는 클릭' },
+  { key: 'graphicNeckline' as const, title: '넥라인 이미지',     max: 3,  target: 'graphicNeckline' as const, placeholder: '넥라인(칼라/목 부위) 사진 드롭 또는 클릭' },
+  { key: 'graphicLogo' as const,     title: '로고 이미지',       max: 3,  target: 'graphicLogo' as const,     placeholder: '로고/브랜드 사진 드롭 또는 클릭' },
+  { key: 'graphicDetail' as const,   title: '디테일 이미지',     max: 10, target: 'graphicDetail' as const,   placeholder: '디테일 사진 드롭 또는 클릭' },
+  { key: 'graphicOther' as const,    title: '기타 착장 이미지',  max: 5,  target: 'graphicOther' as const,    placeholder: '기타 착장 사진(바지, 신발 등) 드롭 또는 클릭' },
 ];
 
 export default function GraphicPage() {

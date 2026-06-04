@@ -20,6 +20,8 @@ interface GenerationOptions {
   modelBgColor: string;
   graphicFrontImages: UploadedImage[];
   graphicBackImages: UploadedImage[];
+  graphicNecklineImages: UploadedImage[];
+  graphicLogoImages: UploadedImage[];
   graphicDetailImages: UploadedImage[];
   graphicOtherImages: UploadedImage[];
   refModelImages: UploadedImage[];
@@ -281,7 +283,7 @@ function buildRequest(opts: GenerationOptions, shotIndex?: number): GeminiGenera
   } else {
     // graphic
     const { gazePrompt, posePrompt, viewPrompt } = buildVariationPrompts(gazeVariation, poseVariation, viewVariation);
-    const totalGraphic = opts.graphicFrontImages.length + opts.graphicBackImages.length + opts.graphicDetailImages.length + opts.graphicOtherImages.length;
+    const totalGraphic = opts.graphicFrontImages.length + opts.graphicBackImages.length + opts.graphicNecklineImages.length + opts.graphicLogoImages.length + opts.graphicDetailImages.length + opts.graphicOtherImages.length;
     prompt = `[업로드된 상품 이미지 목록]: 총 ${totalGraphic}장\n이 이미지들에 있는 패션 아이템/상품을 정확히 인식하고, 가장 완성도 높은 화보(룩북) 컷으로 렌더링하세요. 상품의 디테일과 특징이 왜곡되지 않아야 합니다.`;
     prompt += layoutPrompt + GARMENT_DETAIL_PROMPT + gazePrompt + posePrompt + viewPrompt;
     if (customPrompt) prompt += `\n[기본 요청 사항 - 이 지침을 반드시 최우선으로 따를 것]: ${customPrompt}`;
@@ -299,6 +301,20 @@ function buildRequest(opts: GenerationOptions, shotIndex?: number): GeminiGenera
     if (opts.graphicBackImages.length > 0) {
       parts.push({ text: '[후면 이미지] 다음은 상품의 후면 모습입니다.' });
       opts.graphicBackImages.forEach((img) => {
+        parts.push({ text: `[파일명: ${img.file.name}]` });
+        parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+      });
+    }
+    if (opts.graphicNecklineImages.length > 0) {
+      parts.push({ text: '[넥라인 이미지] 다음은 상품의 넥라인(칼라/목 부위) 디테일입니다. 이 디테일을 의류 전체 렌더링에 정확히 반영하세요.' });
+      opts.graphicNecklineImages.forEach((img) => {
+        parts.push({ text: `[파일명: ${img.file.name}]` });
+        parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
+      });
+    }
+    if (opts.graphicLogoImages.length > 0) {
+      parts.push({ text: '[로고 이미지] 다음은 상품의 로고/브랜드 디테일입니다. 로고의 위치, 크기, 형태를 의류 렌더링에 정확히 반영하세요.' });
+      opts.graphicLogoImages.forEach((img) => {
         parts.push({ text: `[파일명: ${img.file.name}]` });
         parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
       });

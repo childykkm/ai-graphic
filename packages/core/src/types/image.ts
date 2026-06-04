@@ -6,6 +6,8 @@ export type FloorStyle = 'hanger' | 'folded' | 'spread';
 export type ImageTarget =
   | 'graphicFront'
   | 'graphicBack'
+  | 'graphicNeckline'
+  | 'graphicLogo'
   | 'graphicDetail'
   | 'graphicOther'
   | 'reference'

@@ -5,6 +5,8 @@ import type { UploadedImage, ImageTarget } from '@repo/core';
 const MAX_COUNTS: Partial<Record<ImageTarget, number>> = {
   graphicFront: 2,
   graphicBack: 2,
+  graphicNeckline: 3,
+  graphicLogo: 3,
   graphicDetail: 10,
   graphicOther: 5,
   reference: 5,
@@ -22,6 +24,8 @@ const MAX_COUNTS: Partial<Record<ImageTarget, number>> = {
 const ERROR_MESSAGES: Partial<Record<ImageTarget, string>> = {
   graphicFront: '정면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
   graphicBack: '후면 이미지는 최대 2개까지만 업로드할 수 있습니다.',
+  graphicNeckline: '넥라인 이미지는 최대 3개까지만 업로드할 수 있습니다.',
+  graphicLogo: '로고 이미지는 최대 3개까지만 업로드할 수 있습니다.',
   graphicDetail: '디테일 이미지는 최대 10개까지만 업로드할 수 있습니다.',
   graphicOther: '기타 착장 이미지는 최대 5개까지만 업로드할 수 있습니다.',
   reference: '모델 이미지는 최대 5개까지만 업로드할 수 있습니다.',
@@ -40,6 +44,8 @@ export function useImageUpload(onError: (msg: string) => void) {
   const [images, setImages] = useState<Record<ImageTarget, UploadedImage[]>>({
     graphicFront: [],
     graphicBack: [],
+    graphicNeckline: [],
+    graphicLogo: [],
     graphicDetail: [],
     graphicOther: [],
     reference: [],
@@ -57,6 +63,8 @@ export function useImageUpload(onError: (msg: string) => void) {
   const refs: Record<ImageTarget, React.RefObject<HTMLInputElement | null>> = {
     graphicFront: useRef<HTMLInputElement>(null),
     graphicBack: useRef<HTMLInputElement>(null),
+    graphicNeckline: useRef<HTMLInputElement>(null),
+    graphicLogo: useRef<HTMLInputElement>(null),
     graphicDetail: useRef<HTMLInputElement>(null),
     graphicOther: useRef<HTMLInputElement>(null),
     reference: useRef<HTMLInputElement>(null),
@@ -104,6 +112,8 @@ export function useImageUpload(onError: (msg: string) => void) {
     setImages({
       graphicFront: [],
       graphicBack: [],
+      graphicNeckline: [],
+      graphicLogo: [],
       graphicDetail: [],
       graphicOther: [],
       reference: [],
