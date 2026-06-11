@@ -39,7 +39,7 @@ export function ResultsGallery({
   const namePrefix = [brandName, productName, dateStr].filter(Boolean).join('_');
   const tabLabel =
     activeTab === 'floor' ? 'floor_shot' :
-    activeTab === 'concept' ? 'concept_shot' :
+    activeTab === 'multi' ? 'multi_shot' :
     activeTab === 'model' ? 'model_shot' :
     activeTab === 'variation' ? 'variation_shot' :
     'graphic_shot';

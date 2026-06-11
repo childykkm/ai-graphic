@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useImageUpload } from './useImageUpload';
 import { useImageGeneration } from './useImageGeneration';
+import { useMultiPersonUpload } from './useMultiPersonUpload';
 import type { AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType } from '../types/image';
 
 type SectionKey =
   | 'graphicFront' | 'graphicBack' | 'graphicNeckline' | 'graphicLogo' | 'graphicDetail' | 'graphicOther'
   | 'config' | 'reference' | 'background'
-  | 'conceptReference' | 'conceptObject'
+  | 'multiBackground'
   | 'floorFront' | 'floorBack' | 'floorNeckline' | 'floorLogo' | 'floorDetail'
   | 'modelReference' | 'variationImages' | 'variationNeckline' | 'variationLogo' | 'variationDetail';
 
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
   graphicFront: true, graphicBack: true, graphicNeckline: true, graphicLogo: true, graphicDetail: true, graphicOther: true,
   config: false, reference: false, background: false,
-  conceptReference: true, conceptObject: false,
+  multiBackground: true,
   floorFront: true, floorBack: true, floorNeckline: true, floorLogo: true, floorDetail: true,
   modelReference: true, variationImages: true, variationNeckline: true, variationLogo: true, variationDetail: true,
 };
@@ -39,9 +40,8 @@ export function usePageState(activeTab: ActiveTab) {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedFullscreen, setSelectedFullscreen] = useState<string | null>(null);
 
-  const { images, refs, processFiles, removeImage } = useImageUpload(() => {
-    setShowErrorModal(true);
-  });
+  const { images, refs, processFiles, removeImage } = useImageUpload(() => setShowErrorModal(true));
+  const multiUpload = useMultiPersonUpload(() => setShowErrorModal(true));
   const { results, isGenerating, progress, error, generate, cancel } = useImageGeneration();
 
   const toggle = (key: SectionKey) =>
@@ -51,8 +51,8 @@ export function usePageState(activeTab: ActiveTab) {
     if (activeTab === 'floor') {
       const hasFloor = images.floorFront.length > 0 || images.floorBack.length > 0 || images.floorNeckline.length > 0 || images.floorLogo.length > 0 || images.floorDetail.length > 0;
       if (!hasFloor) { setShowErrorModal(true); return; }
-    } else if (activeTab === 'concept') {
-      if (images.conceptReference.length === 0) { setShowErrorModal(true); return; }
+    } else if (activeTab === 'multi') {
+      if (multiUpload.persons[0]?.images.length === 0) { setShowErrorModal(true); return; }
     } else if (activeTab === 'model') {
       if (images.modelReference.length === 0) { setShowErrorModal(true); return; }
     } else if (activeTab === 'variation') {
@@ -71,6 +71,7 @@ export function usePageState(activeTab: ActiveTab) {
       customPrompt, negativePrompt, material, fit, colorSwatch,
       gazeVariation, poseVariation, viewVariation,
       floorStyle, floorBgColor, modelType, modelBgColor,
+      // graphic
       graphicFrontImages: images.graphicFront,
       graphicBackImages: images.graphicBack,
       graphicNecklineImages: images.graphicNeckline,
@@ -79,14 +80,20 @@ export function usePageState(activeTab: ActiveTab) {
       graphicOtherImages: images.graphicOther,
       refModelImages: images.reference,
       bgImages: images.background,
-      conceptRefImages: images.conceptReference,
-      conceptObjImages: images.conceptObject,
+      // multi
+      personCount: multiUpload.personCount,
+      multiPersonImages: multiUpload.persons.map((p) => p.images),
+      multiPersonLogoImages: multiUpload.persons.map((p) => p.logoImages),
+      multiBackgroundImages: multiUpload.bgImages,
+      // floor
       floorFrontImages: images.floorFront,
       floorBackImages: images.floorBack,
       floorNecklineImages: images.floorNeckline,
       floorLogoImages: images.floorLogo,
       floorDetailImages: images.floorDetail,
+      // model
       modelReferenceImages: images.modelReference,
+      // variation
       variationImages: images.variation,
       variationNecklineImages: images.variationNeckline,
       variationLogoImages: images.variationLogo,
@@ -100,7 +107,7 @@ export function usePageState(activeTab: ActiveTab) {
     isGenerating ||
     (activeTab === 'graphic' && images.graphicFront.length === 0 && images.graphicBack.length === 0 && images.graphicNeckline.length === 0 && images.graphicLogo.length === 0 && images.graphicDetail.length === 0 && images.graphicOther.length === 0) ||
     (activeTab === 'floor' && images.floorFront.length === 0 && images.floorBack.length === 0 && images.floorNeckline.length === 0 && images.floorLogo.length === 0 && images.floorDetail.length === 0) ||
-    (activeTab === 'concept' && images.conceptReference.length === 0) ||
+    (activeTab === 'multi' && (multiUpload.persons[0]?.images.length ?? 0) === 0) ||
     (activeTab === 'model' && images.modelReference.length === 0) ||
     (activeTab === 'variation' && images.variation.length === 0 && images.variationNeckline.length === 0 && images.variationLogo.length === 0 && images.variationDetail.length === 0);
 
@@ -125,6 +132,7 @@ export function usePageState(activeTab: ActiveTab) {
     showErrorModal, setShowErrorModal,
     selectedFullscreen, setSelectedFullscreen,
     images, refs, processFiles, removeImage,
+    multiUpload,
     results, isGenerating, progress, error, generate: () => handleGenerate(runGenerate), cancel,
     isGenerateDisabled,
   };

@@ -35,9 +35,9 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: 'concept',
+        path: 'multi',
         lazy: async () => {
-          const { default: Component } = await import('./routes/concept/page');
+          const { default: Component } = await import('./routes/multi/page');
           return { Component };
         },
       },

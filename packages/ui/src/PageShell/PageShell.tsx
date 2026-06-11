@@ -10,7 +10,7 @@ import { downloadSingle, downloadZip, formatDownloadDate } from '@repo/core';
 
 const NAV_ITEMS: { tab: ActiveTab; label: string }[] = [
   { tab: 'graphic', label: 'Graphic' },
-  { tab: 'concept', label: 'Concept' },
+  { tab: 'multi', label: 'Multi' },
   { tab: 'floor', label: 'Floor' },
   { tab: 'model', label: 'Model' },
   { tab: 'variation', label: 'Variation' },
@@ -60,7 +60,7 @@ export function PageShell({
     const prefix = [brandName, productName, dateStr].filter(Boolean).join('_');
     const tabLabel =
       activeTab === 'floor' ? 'floor_shot' :
-      activeTab === 'concept' ? 'concept_shot' :
+      activeTab === 'multi' ? 'multi_shot' :
       activeTab === 'model' ? 'model_shot' :
       activeTab === 'variation' ? 'variation_shot' :
       'graphic_shot';

@@ -1,7 +1,7 @@
 export type AspectRatio = '1:1' | '3:2' | '2:3' | '16:9' | '9:16';
 export type ImageSize = '1K' | '2K' | '4K';
 export type ModelType = 'nanobanana-2' | 'nanobanana-pro' | 'gpt-image-2';
-export type ActiveTab = 'graphic' | 'concept' | 'floor' | 'model' | 'variation';
+export type ActiveTab = 'graphic' | 'multi' | 'floor' | 'model' | 'variation';
 export type FloorStyle = 'hanger' | 'folded' | 'spread';
 export type ImageTarget =
   | 'graphicFront'
@@ -12,8 +12,7 @@ export type ImageTarget =
   | 'graphicOther'
   | 'reference'
   | 'background'
-  | 'conceptReference'
-  | 'conceptObject'
+  | 'multiBackground'
   | 'floorFront'
   | 'floorBack'
   | 'floorNeckline'
@@ -76,7 +75,7 @@ export const HIGH_VOLUME_THRESHOLD = 11;
 
 export const TAB_LABEL: Record<ActiveTab, string> = {
   graphic: 'Graphic',
-  concept: 'Concept',
+  multi: 'Multi',
   floor: 'Floor',
   model: 'Model',
   variation: 'Variation',

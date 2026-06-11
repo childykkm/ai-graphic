@@ -6,7 +6,7 @@ import type { GeminiGenerateRequest, GeminiPart, ImageResult } from '@repo/core'
 import { buildGraphicGeminiParts, buildGraphicGptPrompt } from './prompts/graphicPrompt';
 import { buildFloorGeminiParts, buildFloorGptPrompt } from './prompts/floorPrompt';
 import { buildModelGeminiParts, buildModelGptPrompt, MODEL_SHOTS } from './prompts/modelPrompt';
-import { buildConceptGeminiParts, buildConceptGptPrompt } from './prompts/conceptPrompt';
+import { buildMultiGeminiParts, buildMultiGptPrompt } from './prompts/multiPrompt';
 import { buildVariationGeminiParts, buildVariationGptPrompt } from './prompts/variationPrompt';
 
 export interface GenerationOptions {
@@ -36,9 +36,11 @@ export interface GenerationOptions {
   graphicOtherImages: UploadedImage[];
   refModelImages: UploadedImage[];
   bgImages: UploadedImage[];
-  // concept
-  conceptRefImages: UploadedImage[];
-  conceptObjImages: UploadedImage[];
+  // multi
+  personCount: number;
+  multiPersonImages: UploadedImage[][];
+  multiPersonLogoImages: UploadedImage[][];
+  multiBackgroundImages: UploadedImage[];
   // floor
   floorFrontImages: UploadedImage[];
   floorBackImages: UploadedImage[];
@@ -56,7 +58,7 @@ export interface GenerationOptions {
 
 const RESULT_LABELS: Record<ActiveTab, string> = {
   floor: '생성된 바닥컷',
-  concept: '생성된 컨셉 배경',
+  multi: '생성된 멀티 컷',
   model: '생성된 모델 컷',
   variation: '생성된 변주 컷',
   graphic: '생성된 모델 컷',
@@ -85,8 +87,8 @@ function buildGeminiRequest(opts: GenerationOptions, shotIndex?: number): Gemini
       prompt = result.prompt;
       break;
     }
-    case 'concept': {
-      const result = buildConceptGeminiParts(opts);
+    case 'multi': {
+      const result = buildMultiGeminiParts(opts);
       parts = result.parts;
       prompt = result.prompt;
       break;
@@ -115,11 +117,11 @@ function buildGeminiRequest(opts: GenerationOptions, shotIndex?: number): Gemini
 
 function buildGptPrompt(opts: GenerationOptions, shotIndex = 0): string {
   switch (opts.activeTab) {
-    case 'graphic':  return buildGraphicGptPrompt(opts);
-    case 'floor':    return buildFloorGptPrompt(opts, shotIndex);
-    case 'model':    return buildModelGptPrompt(opts, shotIndex);
-    case 'concept':  return buildConceptGptPrompt(opts.customPrompt);
-    case 'variation': return buildVariationGptPrompt(opts);  // opts에 variationNeckline/Logo/DetailImages 포함
+    case 'graphic':   return buildGraphicGptPrompt(opts);
+    case 'floor':     return buildFloorGptPrompt(opts, shotIndex);
+    case 'model':     return buildModelGptPrompt(opts, shotIndex);
+    case 'multi':     return buildMultiGptPrompt(opts);
+    case 'variation': return buildVariationGptPrompt(opts);
   }
 }
 
