@@ -12,7 +12,7 @@ interface GuideModalProps {
 const GUIDE_MENUS = [
   { id: 'all', title: '설명서 개요', badge: '가이드' },
   { id: 'graphic', title: '1. Graphic (화보)', badge: '룩북' },
-  { id: 'concept', title: '2. Concept (배경)', badge: '컨셉' },
+  { id: 'multi', title: '2. Multi (멀티컷)', badge: '합성' },
   { id: 'floor', title: '3. Floor (바닥컷)', badge: '상세' },
   { id: 'model', title: '4. Model (피사체)', badge: '동일' },
   { id: 'variation', title: '5. Variation (변주)', badge: '제어' },
@@ -152,30 +152,33 @@ export function GuideModal({ isOpen, onClose, activeTab, onTabChange }: GuideMod
                   </div>
                 )}
 
-                {activeTab === 'concept' && (
+                {activeTab === 'multi' && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-bold text-white bg-[#1A1A1A] px-2.5 py-1 rounded-md">기능 2</span>
-                      <h4 className="text-lg font-black text-gray-900">Concept (무드 분석 입체 배경)</h4>
+                      <h4 className="text-lg font-black text-gray-900">Multi (다중 인물 컨셉 화보)</h4>
                     </div>
                     <div className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
                       <span className="text-xs font-bold text-gray-400 uppercase">목적 및 요약</span>
-                      <p className="text-sm font-medium text-gray-700 mt-1">촬영하고 싶은 실내외 스튜디오, 자연경관, 모던 주택 등 원본 레퍼런스 이미지의 전체적인 빛의 방향, 감도, 조명 톤앤매너를 분석하여 완벽하게 결을 같이 하는 유사 입체 컨셉 배경을 창조해 냅니다.</p>
+                      <p className="text-sm font-medium text-gray-700 mt-1">최대 10명의 등장인물을 지정하여 각 인물의 레퍼런스 사진과 의류 로고/아트웍을 인물별로 독립 입력하고, 원하는 컨셉/무드 배경과 함께 다중 인물이 등장하는 고품질 패션 화보 컷을 생성합니다.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h5 className="text-sm font-black text-gray-800 mb-2">📥 필수 첨부 자원</h5>
                         <ul className="text-xs text-gray-600 space-y-2 font-medium">
-                          <li className="flex items-start gap-1.5"><span className="text-blue-500">●</span><div><strong>레퍼런스 이미지 (최대 5장)</strong>: 영감을 제공할 색감, 분위기, 공간의 특징이 찍힌 무드보드 혹은 실제 촬영장 시안 이미지.</div></li>
-                          <li className="flex items-start gap-1.5"><span className="text-blue-500">●</span><div><strong>오브젝트 이미지 (선택)</strong>: 배경 한가운데에 배치하고 싶은 가구, 조각, 소품 등 단독 아이템 이미지.</div></li>
+                          <li className="flex items-start gap-1.5"><span className="text-blue-500">●</span><div><strong>등장인물 수 설정 (1~10명)</strong>: 숫자 입력 또는 +/- 버튼으로 인물 수 지정. 인물 수만큼 섹션이 동적 생성됩니다.</div></li>
+                          <li className="flex items-start gap-1.5"><span className="text-blue-500">●</span><div><strong>인물별 사진 (각 최대 3장)</strong>: 각 등장인물의 얼굴, 체형, 헤어스타일이 담긴 레퍼런스 사진.</div></li>
+                          <li className="flex items-start gap-1.5"><span className="text-blue-500">●</span><div><strong>인물별 로고/아트웍 (각 최대 5장, 선택)</strong>: 해당 인물 의류에 들어가는 그래픽, 로고, 자수 등의 디테일 이미지.</div></li>
+                          <li className="flex items-start gap-1.5"><span className="text-blue-500">●</span><div><strong>배경 설정 이미지 (최대 5장, 선택)</strong>: 원하는 무드, 조명, 공간감의 레퍼런스 이미지.</div></li>
                         </ul>
                       </div>
                       <div>
-                        <h5 className="text-sm font-black text-gray-800 mb-2">⚙️ 권장 작동 시나리오</h5>
-                        <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                          - 상품 입점 마케팅 소스로 쓸 깨끗한 공배경이 필요할 때 활용합니다.<br />
-                          - "해질녘의 부드러운 오렌지색 자연광이 비스듬히 비치는 모던 스튜디오 콘크리트 벽면 배경" 등의 구체적인 문장을 기본 요청 사항에 추가하면 훨씬 밀도 높은 공간이 렌더링됩니다.
-                        </p>
+                        <h5 className="text-sm font-black text-gray-800 mb-2">⚙️ 활용 노하우</h5>
+                        <ul className="text-xs text-gray-600 space-y-2 font-medium">
+                          <li className="flex items-start gap-1.5"><span className="text-purple-500">●</span><div><strong>인물 간 관계 연출</strong>: 기본 요청 사항에 "두 인물이 나란히 걷는 장면", "세 명이 대화하는 자연스러운 구도" 등 상황을 구체적으로 입력하면 완성도가 높아집니다.</div></li>
+                          <li className="flex items-start gap-1.5"><span className="text-purple-500">●</span><div><strong>로고/아트웍 정밀도</strong>: 의류의 그래픽이 중요한 경우 반드시 로고/아트웍 슬롯을 활용하세요. 선명한 벡터 품질로 재현됩니다.</div></li>
+                          <li className="flex items-start gap-1.5"><span className="text-emerald-500">●</span><div><strong>제외 요청 활용</strong>: 생성 튜닝의 제외 요청란에 "문신 없이", "배경에 텍스트 없이" 등을 입력하면 원치 않는 요소를 제거할 수 있습니다.</div></li>
+                        </ul>
                       </div>
                     </div>
                   </div>

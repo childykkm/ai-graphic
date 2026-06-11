@@ -18,16 +18,21 @@ export function useHistorySave({
   brandName,
   productName,
 }: UseHistorySaveOptions): void {
+  const prevIsGeneratingRef = useRef(false);
   const savedRef = useRef(false);
 
   useEffect(() => {
+    const wasGenerating = prevIsGeneratingRef.current;
+    prevIsGeneratingRef.current = isGenerating;
+
+    // 생성 시작 시 저장 플래그 리셋
     if (isGenerating) {
       savedRef.current = false;
+      return;
     }
-  }, [isGenerating]);
 
-  useEffect(() => {
-    if (!isGenerating && results.length > 0 && !savedRef.current) {
+    // 생성이 방금 완료된 시점 (true → false 전환) + 결과 있음 + 미저장
+    if (wasGenerating && !isGenerating && results.length > 0 && !savedRef.current) {
       savedRef.current = true;
       addHistory({
         activeTab,
@@ -37,5 +42,5 @@ export function useHistorySave({
         count: results.length,
       });
     }
-  }, [isGenerating, results]);
+  }, [isGenerating, results.length]);
 }
