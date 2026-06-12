@@ -101,11 +101,12 @@ function buildGeminiRequest(opts: GenerationOptions, shotIndex?: number): Gemini
     }
   }
 
-  parts.push({ text: prompt });
+  // 프롬프트 텍스트를 이미지 파트보다 먼저 위치시켜 Gemini가 지시를 먼저 읽도록 함
+  const orderedParts: GeminiPart[] = [{ text: prompt }, ...parts];
 
   return {
     model: API_MODEL_MAP[opts.modelType],
-    contents: { parts },
+    contents: { parts: orderedParts },
     config: {
       imageConfig: {
         aspectRatio: API_ASPECT_RATIO_MAP[opts.aspectRatio],
@@ -179,7 +180,9 @@ export function useImageGeneration() {
         );
       }
     } catch (err) {
-      setError(formatErrorMessage(err));
+      const msg = formatErrorMessage(err);
+      // 부분 성공(일부 results 있음) 시 results는 유지하고 에러 메시지만 표시
+      setError(msg);
     } finally {
       setIsGenerating(false);
     }

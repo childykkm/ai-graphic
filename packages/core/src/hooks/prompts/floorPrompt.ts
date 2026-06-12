@@ -1,8 +1,9 @@
 import type { GeminiPart } from '../../types/api';
 import type { UploadedImage, FloorStyle } from '../../types/image';
 import {
+  FASHION_ROLE_PROMPT,
+  QUALITY_PROMPT,
   GARMENT_DETAIL_PROMPT,
-  IMAGE_PART_LABELS,
   GPT_DETAIL_INSTRUCTIONS,
   buildLayoutPrompt,
   buildProductMetaPrompt,
@@ -22,9 +23,9 @@ const FLOOR_SHOT_TYPES = [
 ];
 
 const FLOOR_STYLE_LABEL: Record<FloorStyle, string> = {
-  hanger: '옷걸이컷',
-  folded: '접힌 바닥컷',
-  spread: '펼쳐진 바닥컷',
+  hanger: 'Hanger Shot (garment hanging on a hanger)',
+  folded: 'Folded Shot (garment neatly folded)',
+  spread: 'Spread Shot (garment laid flat and spread out)',
 };
 
 const FLOOR_STYLE_LABEL_EN: Record<FloorStyle, string> = {
@@ -56,18 +57,23 @@ export function buildFloorGeminiParts(opts: FloorPromptOptions): { parts: Gemini
     opts.floorNecklineImages.length + opts.floorLogoImages.length +
     opts.floorDetailImages.length;
 
-  let prompt = `[업로드된 상품 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 의류 아이템을 정확히 인식하여 상품 상세 페이지에 적합한 "바닥컷(Floor cut)" 형태로 렌더링하세요.`;
-  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT;
+  let prompt = FASHION_ROLE_PROMPT + QUALITY_PROMPT;
+  prompt += `\n[Task]: You are given ${total} product image(s). Accurately identify the garment and render it as a clean, professional e-commerce floor cut suitable for a product detail page.\n`;
+  prompt += buildLayoutPrompt(opts.imagesPerShot);
+  prompt += GARMENT_DETAIL_PROMPT;
   prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
-  prompt += `\n[바닥컷 스타일]: 반드시 [${FLOOR_STYLE_LABEL[opts.floorStyle]}] 형태로 생성하세요.`;
-  prompt += `\n[배경 지침]: 배경은 지정된 단일 색상(Hex Color Code: ${opts.floorBgColor})의 솔리드 컬러로 깔끔하게 처리하세요.`;
-  if (opts.customPrompt) prompt += `\n[기본 요청 사항]: ${opts.customPrompt}`;
+  prompt += `\n[Floor Style]: Generate in [${FLOOR_STYLE_LABEL[opts.floorStyle]}] style.`;
+  prompt += `\n[Background]: Solid color background only — Hex Color Code: ${opts.floorBgColor}. Clean, no shadows bleeding outside the garment.`;
+  if (opts.customPrompt) prompt += `\n[Custom Instructions]: ${opts.customPrompt}`;
+  prompt += `\n[Final Constraint]: No text overlays, no watermarks, no irrelevant objects.`;
 
-  pushImageParts(parts, IMAGE_PART_LABELS.front,    opts.floorFrontImages,    true);
-  pushImageParts(parts, IMAGE_PART_LABELS.back,     opts.floorBackImages,     true);
-  pushImageParts(parts, IMAGE_PART_LABELS.neckline, opts.floorNecklineImages, true);
-  pushImageParts(parts, IMAGE_PART_LABELS.logo,     opts.floorLogoImages,     true);
-  pushImageParts(parts, IMAGE_PART_LABELS.detail,   opts.floorDetailImages,   true);
+  // PRIMARY: 메인 실루엣 기준
+  pushImageParts(parts, `[PRIMARY REFERENCE — FRONT VIEW] This is the MAIN reference for the garment's front side. Use this as the primary source for silhouette, color, and overall design.`, opts.floorFrontImages, true);
+  pushImageParts(parts, `[PRIMARY REFERENCE — REAR VIEW] This is the MAIN reference for the garment's back side. Use this as the primary source for back design.`, opts.floorBackImages, true);
+  // SUPPLEMENTARY: 세부 참고
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — NECKLINE] Close-up reference for neckline/collar area only. Integrate into the main garment rendering.`, opts.floorNecklineImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — LOGO/BRAND] Close-up reference for logo/graphic placement only. Reproduce exact position, size, and shape.`, opts.floorLogoImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — FABRIC/PATTERN] Close-up reference for fabric texture and pattern only. Apply this to the garment surface.`, opts.floorDetailImages, true);
 
   return { parts, prompt };
 }

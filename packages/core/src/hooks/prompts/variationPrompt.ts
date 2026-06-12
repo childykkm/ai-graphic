@@ -1,8 +1,9 @@
 import type { GeminiPart } from '../../types/api';
 import type { UploadedImage } from '../../types/image';
 import {
+  FASHION_ROLE_PROMPT,
+  QUALITY_PROMPT,
   GARMENT_DETAIL_PROMPT,
-  IMAGE_PART_LABELS,
   GPT_DETAIL_INSTRUCTIONS,
   buildLayoutPrompt,
   buildVariationPrompts,
@@ -37,19 +38,24 @@ export function buildVariationGeminiParts(opts: VariationPromptOptions): { parts
     opts.variationImages.length + opts.variationNecklineImages.length +
     opts.variationLogoImages.length + opts.variationDetailImages.length;
 
-  let prompt = `[업로드된 원본 참고 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 패션 아이템/인물/컨셉의 요소를 정확히 파악하여, 다양한 자세(pose), 시선(gaze) 및 카메라 앵글(view)로 극적인 변주(Variation)를 준 새로운 화보 컷을 생성해 주세요. 기존 아이템 고유의 핵심 형태나 디자인은 유지하되, 자세와 레이아웃을 완전히 새롭게 하여 창의적으로 재해석되어야 합니다.`;
-  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT;
+  let prompt = FASHION_ROLE_PROMPT + QUALITY_PROMPT;
+  prompt += `\n[Task]: You are given ${total} reference image(s). Accurately identify the fashion item, person, and concept from these images and generate a new editorial fashion cut with dramatic variation in pose, gaze, and/or camera angle. The core identity, design, and details of the original item must be preserved — only the pose and composition should be creatively reinterpreted.\n`;
+  prompt += buildLayoutPrompt(opts.imagesPerShot);
+  prompt += GARMENT_DETAIL_PROMPT;
   prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
   prompt += gazePrompt + posePrompt + viewPrompt;
-  if (opts.customPrompt) prompt += `\n[기본 요청 사항 (선택)]: ${opts.customPrompt}`;
+  if (opts.customPrompt) prompt += `\n[Custom Instructions]: ${opts.customPrompt}`;
+  prompt += `\n[Final Constraint]: No text overlays, no watermarks.`;
 
+  // PRIMARY: 메인 변주 참고
   opts.variationImages.forEach((img) => {
-    parts.push({ text: `[참고 사진] [파일명: ${img.file.name}]` });
+    parts.push({ text: `[PRIMARY REFERENCE IMAGE] This is the MAIN source image for variation. Preserve the core identity, garment design, and overall concept from this image. [Filename: ${img.file.name}]` });
     parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } });
   });
-  pushImageParts(parts, IMAGE_PART_LABELS.neckline, opts.variationNecklineImages, true);
-  pushImageParts(parts, IMAGE_PART_LABELS.logo,     opts.variationLogoImages,     true);
-  pushImageParts(parts, IMAGE_PART_LABELS.detail,   opts.variationDetailImages,   true);
+  // SUPPLEMENTARY: 디테일 보조
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — NECKLINE] Close-up reference for neckline/collar. Reproduce this detail in the variation output.`, opts.variationNecklineImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — LOGO/BRAND] Close-up reference for logo/graphic. Reproduce exact position, size, and shape in the variation output.`, opts.variationLogoImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — FABRIC/PATTERN] Close-up reference for fabric texture. Maintain this detail in the variation output.`, opts.variationDetailImages, true);
 
   return { parts, prompt };
 }

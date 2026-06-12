@@ -1,8 +1,9 @@
 import type { GeminiPart } from '../../types/api';
 import type { UploadedImage } from '../../types/image';
 import {
+  FASHION_ROLE_PROMPT,
+  QUALITY_PROMPT,
   GARMENT_DETAIL_PROMPT,
-  IMAGE_PART_LABELS,
   GPT_DETAIL_INSTRUCTIONS,
   buildLayoutPrompt,
   buildVariationPrompts,
@@ -42,24 +43,33 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
     opts.graphicNecklineImages.length + opts.graphicLogoImages.length +
     opts.graphicDetailImages.length + opts.graphicOtherImages.length;
 
-  let prompt = `[업로드된 상품 이미지 목록]: 총 ${total}장\n이 이미지들에 있는 패션 아이템/상품을 정확히 인식하고, 가장 완성도 높은 화보(룩북) 컷으로 렌더링하세요. 상품의 디테일과 특징이 왜곡되지 않아야 합니다.`;
-  prompt += buildLayoutPrompt(opts.imagesPerShot) + GARMENT_DETAIL_PROMPT;
+  let prompt = FASHION_ROLE_PROMPT + QUALITY_PROMPT;
+  prompt += `\n[Task]: You are given ${total} product image(s) of a fashion item. Accurately identify the garment and render it as a high-end lookbook / editorial fashion photograph. All product details and characteristics must be faithfully reproduced without distortion.\n`;
+  prompt += buildLayoutPrompt(opts.imagesPerShot);
+  prompt += GARMENT_DETAIL_PROMPT;
   prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt);
   prompt += gazePrompt + posePrompt + viewPrompt;
-  if (opts.customPrompt) prompt += `\n[기본 요청 사항 - 이 지침을 반드시 최우선으로 따를 것]: ${opts.customPrompt}`;
+
   if (opts.refModelImages.length > 0) {
-    prompt += `\n주의: 최대 5개의 인물 예시 이미지가 제공되었습니다. 새롭게 만들어지는 모델의 체형과 외모는 오직 이 예시 이미지들의 모델을 최우선으로 반영하여 통일성 있게 생성하세요.`;
+    prompt += `\n[Model Reference]: Up to 5 model reference images are provided. The newly generated model's physique and appearance must prioritize and match these reference images consistently.`;
   }
   if (opts.bgImages.length > 0) {
-    prompt += `\n[배경 및 감도 필수 지침]: 추가로 제공된 컨셉 배경 이미지들이 있습니다. 새롭게 만들어지는 화보의 배경, 채도, 감도, 조명 등 전체적인 무드와 톤앤매너는 반드시 이 배경 이미지들의 느낌을 최우선으로 반영하여 생성하세요.`;
+    prompt += `\n[Background & Mood]: Concept background images are provided. The background, saturation, exposure, lighting, and overall mood/tone of the generated editorial must reflect these background references as the top priority.`;
   }
+  if (opts.customPrompt) {
+    prompt += `\n[Custom Instructions — follow with highest priority]: ${opts.customPrompt}`;
+  }
+  prompt += `\n[Final Constraint]: No text overlays, no watermarks, no logos unrelated to the garment.`;
 
-  pushImageParts(parts, IMAGE_PART_LABELS.front,    opts.graphicFrontImages,    true);
-  pushImageParts(parts, IMAGE_PART_LABELS.back,     opts.graphicBackImages,     true);
-  pushImageParts(parts, IMAGE_PART_LABELS.neckline, opts.graphicNecklineImages, true);
-  pushImageParts(parts, IMAGE_PART_LABELS.logo,     opts.graphicLogoImages,     true);
-  pushImageParts(parts, IMAGE_PART_LABELS.detail,   opts.graphicDetailImages,   true);
-  pushImageParts(parts, IMAGE_PART_LABELS.other,    opts.graphicOtherImages,    true);
+  // 이미지 파트는 프롬프트 뒤에 위치
+  // PRIMARY: 메인 실루엣 기준 이미지 (가장 높은 우선순위)
+  pushImageParts(parts, `[PRIMARY REFERENCE — FRONT VIEW] This is the MAIN reference image showing the front of the garment. Use this as the primary source for silhouette, color, and overall design.`, opts.graphicFrontImages, true);
+  pushImageParts(parts, `[PRIMARY REFERENCE — REAR VIEW] This is the MAIN reference image showing the back of the garment. Use this as the primary source for the back design and silhouette.`, opts.graphicBackImages, true);
+  // SUPPLEMENTARY: 디테일 보조 이미지 (세부 참고용)
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — NECKLINE] Use this as a close-up reference for the neckline/collar area only. Integrate this detail into the main garment rendering.`, opts.graphicNecklineImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — LOGO/BRAND] Use this as a close-up reference for the logo/graphic placement only. Reproduce exact position, size, and shape on the garment.`, opts.graphicLogoImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY DETAIL — FABRIC/PATTERN] Use this as a close-up reference for fabric texture and pattern only. Apply this texture to the garment surface.`, opts.graphicDetailImages, true);
+  pushImageParts(parts, `[SUPPLEMENTARY REFERENCE — STYLING] Use this as a supplementary styling and layout reference only.`, opts.graphicOtherImages, true);
   opts.refModelImages.forEach((img) => parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } }));
   opts.bgImages.forEach((img) => parts.push({ inlineData: { data: img.base64, mimeType: img.file.type } }));
 
