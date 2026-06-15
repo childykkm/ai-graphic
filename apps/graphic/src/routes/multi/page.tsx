@@ -75,9 +75,12 @@ export default function MultiPage() {
           activeTab="multi"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
           negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          category="" setCategory={() => {}}
           material="" setMaterial={() => {}}
           fit="" setFit={() => {}}
           colorSwatch="" setColorSwatch={() => {}}
+          season="" setSeason={() => {}}
+          mood="" setMood={() => {}}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}

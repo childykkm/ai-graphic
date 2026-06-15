@@ -24,9 +24,12 @@ export default function GraphicPage() {
   const {    openSections, toggle,
     customPrompt, setCustomPrompt,
     negativePrompt, setNegativePrompt,
+    category, setCategory,
     material, setMaterial,
     fit, setFit,
     colorSwatch, setColorSwatch,
+    season, setSeason,
+    mood, setMood,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,
@@ -74,9 +77,12 @@ export default function GraphicPage() {
           activeTab="graphic"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
           negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          category={category} setCategory={setCategory}
           material={material} setMaterial={setMaterial}
           fit={fit} setFit={setFit}
           colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
+          season={season} setSeason={setSeason}
+          mood={mood} setMood={setMood}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           imagesPerShot={imagesPerShot} setImagesPerShot={setImagesPerShot}

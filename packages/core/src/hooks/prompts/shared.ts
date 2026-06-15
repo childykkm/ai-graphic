@@ -114,8 +114,11 @@ export function buildVariationPromptsEn(gaze: number, pose: number, view: number
 
 // ── Product meta prompts ─────────────────────────────────────────────────────
 
-export function buildProductMetaPrompt(material: string, fit: string, colorSwatch: string, negativePrompt: string): string {
+export function buildProductMetaPrompt(material: string, fit: string, colorSwatch: string, negativePrompt: string, category = '', season = '', mood = ''): string {
   let prompt = '';
+  if (category) prompt += `\n[Garment Category]: This garment is a "${category}". Generate it with the correct structure, construction details, and design elements specific to this garment type.`;
+  if (season) prompt += `\n[Season]: This is a "${season}" collection item. Reflect the appropriate seasonal atmosphere, lighting temperature, and styling context.`;
+  if (mood) prompt += `\n[Mood & Aesthetic]: The desired mood and aesthetic is "${mood}". Reflect this in the background, lighting, color grading, and overall atmosphere.`;
   if (material) prompt += `\n[Material]: The garment is made of "${material}". Reproduce the exact texture, sheen, drape, and wrinkle behavior of this fabric with maximum realism.`;
   if (fit) prompt += `\n[Fit]: The garment fit is "${fit}". Accurately represent the silhouette, ease, shoulder line, and overall hang of this fit.`;
   if (colorSwatch) prompt += `\n[Color]: The primary color is "${colorSwatch}". Reproduce this color with maximum accuracy — do not alter brightness or saturation arbitrarily.`;
@@ -123,8 +126,11 @@ export function buildProductMetaPrompt(material: string, fit: string, colorSwatc
   return prompt;
 }
 
-export function buildProductMetaPromptEn(material: string, fit: string, colorSwatch: string, negativePrompt: string): string {
+export function buildProductMetaPromptEn(material: string, fit: string, colorSwatch: string, negativePrompt: string, category = '', season = '', mood = ''): string {
   let prompt = '';
+  if (category) prompt += ` Garment type: ${category} — generate with correct structure and construction details for this garment type.`;
+  if (season) prompt += ` Season: ${season} — reflect appropriate seasonal atmosphere and styling context.`;
+  if (mood) prompt += ` Mood/Aesthetic: ${mood} — reflect this in background, lighting, and color grading.`;
   if (material) prompt += ` Material: ${material} — reproduce the exact texture, sheen, drape, and wrinkle behavior of this fabric realistically.`;
   if (fit) prompt += ` Fit: ${fit} — accurately represent the silhouette, ease, shoulder drop, and overall hang of this fit.`;
   if (colorSwatch) prompt += ` Primary color is "${colorSwatch}" — reproduce this color with maximum accuracy, do not alter brightness or saturation arbitrarily.`;

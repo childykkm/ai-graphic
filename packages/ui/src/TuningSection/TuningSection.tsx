@@ -2,6 +2,22 @@ import { Info } from 'lucide-react';
 import { ColorPicker } from '../ColorPicker/ColorPicker';
 import type { AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType } from '@repo/core';
 
+const CATEGORY_OPTIONS = ['티셔츠', '맨투맨', '후드', '셔츠', '니트', '아우터', '바지', '스커트', '원피스', '코트', '점퍼/패딩'];
+const SEASON_OPTIONS = [
+  { label: '봄 (Spring)',    value: 'Spring' },
+  { label: '봄/여름 (SS)', value: 'Spring/Summer' },
+  { label: '여름 (Summer)',  value: 'Summer' },
+  { label: '가을 (Fall)',    value: 'Fall' },
+  { label: '가을/겨울 (FW)', value: 'Fall/Winter' },
+  { label: '겨울 (Winter)', value: 'Winter' },
+];
+const MOOD_OPTIONS = [
+  { label: '클린 (Clean)', value: 'Clean — minimal, simple white tone, bright and crisp' },
+  { label: '무드 (Moody)', value: 'Moody — dark and dramatic atmosphere, deep shadows' },
+  { label: '빈티지 (Vintage)', value: 'Vintage — film-inspired, retro color grading, faded tones' },
+  { label: '스포티 (Sporty)', value: 'Sporty — dynamic and energetic, active lifestyle feel' },
+  { label: '럭셔리 (Luxury)', value: 'Luxury — sophisticated and refined, high-end editorial elegance' },
+];
 const MATERIAL_OPTIONS = ['면 100%', '린넨 100%', '폴리에스터', '울 혼방', '니트', '데님', '레더/PU', '시폰', '새틴'];
 const FIT_OPTIONS = ['슬림핏', '레귤러핏', '오버핏', '루즈핏', '와이드핏'];
 
@@ -11,12 +27,18 @@ interface TuningSectionProps {
   setCustomPrompt: (v: string) => void;
   negativePrompt: string;
   setNegativePrompt: (v: string) => void;
+  category: string;
+  setCategory: (v: string) => void;
   material: string;
   setMaterial: (v: string) => void;
   fit: string;
   setFit: (v: string) => void;
   colorSwatch: string;
   setColorSwatch: (v: string) => void;
+  season: string;
+  setSeason: (v: string) => void;
+  mood: string;
+  setMood: (v: string) => void;
   aspectRatio: AspectRatio;
   setAspectRatio: (v: AspectRatio) => void;
   imageSize: ImageSize;
@@ -48,9 +70,12 @@ export function TuningSection({
   activeTab,
   customPrompt, setCustomPrompt,
   negativePrompt, setNegativePrompt,
+  category, setCategory,
   material, setMaterial,
   fit, setFit,
   colorSwatch, setColorSwatch,
+  season, setSeason,
+  mood, setMood,
   aspectRatio, setAspectRatio,
   imageSize, setImageSize,
   imagesPerShot, setImagesPerShot,
@@ -99,6 +124,34 @@ export function TuningSection({
           className="w-full p-4 bg-gray-50/80 rounded-2xl text-base border border-gray-200 focus:border-[#1A1A1A] focus:bg-white transition-all outline-none resize-none h-20 font-medium"
         />
       </div>
+
+      {/* 상품 카테고리 (상품 탭만) */}
+      {isProductTab && (
+        <div className="space-y-4">
+          <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+            상품 카테고리 (선택)
+            <div className="group relative">
+              <Info size={16} className="text-gray-300 cursor-help" />
+              <div className="absolute top-1/2 left-full ml-2 w-56 text-left -translate-y-1/2 p-2.5 bg-gray-800 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl font-medium leading-relaxed">
+                카테고리를 입력하면 AI가 의류 종류에 맞는 구조와 디테일을 더 정확하게 생성합니다.
+              </div>
+            </div>
+          </label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {CATEGORY_OPTIONS.map((opt) => (
+              <button key={opt} onClick={() => setCategory(category === opt ? '' : opt)}
+                className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all border-2 ${category === opt ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
+                {opt}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text" value={category} onChange={(e) => setCategory(e.target.value)}
+            placeholder="직접 입력 (예: 후드집업, 데님팬츠)"
+            className="w-full p-4 bg-gray-50/80 rounded-2xl text-sm border border-gray-200 focus:border-[#1A1A1A] focus:bg-white transition-all outline-none font-medium"
+          />
+        </div>
+      )}
 
       {/* 소재 (상품 탭만) */}
       {isProductTab && (
@@ -174,6 +227,55 @@ export function TuningSection({
             className="w-full p-4 bg-gray-50/80 rounded-2xl text-sm border border-gray-200 focus:border-[#1A1A1A] focus:bg-white transition-all outline-none font-medium"
           />
         </div>
+      )}
+
+      {/* 시즌/무드 (상품 탭만) */}
+      {isProductTab && (
+        <>
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+              시즌 (선택)
+              <div className="group relative">
+                <Info size={16} className="text-gray-300 cursor-help" />
+                <div className="absolute top-1/2 left-full ml-2 w-56 text-left -translate-y-1/2 p-2.5 bg-gray-800 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl font-medium leading-relaxed">
+                  시즌을 입력하면 AI가 적합한 계절감, 조명 온도, 스타일링 콘텍스트를 자동으로 반영합니다.
+                </div>
+              </div>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {SEASON_OPTIONS.map((opt) => (
+                <button key={opt.value} onClick={() => setSeason(season === opt.value ? '' : opt.value)}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all border-2 ${season === opt.value ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+              분위기 (선택)
+              <div className="group relative">
+                <Info size={16} className="text-gray-300 cursor-help" />
+                <div className="absolute top-1/2 left-full ml-2 w-56 text-left -translate-y-1/2 p-2.5 bg-gray-800 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl font-medium leading-relaxed">
+                  원하는 분위기를 선택하면 배경, 조명, 색감 보정에 자동 반영됩니다. 배경 레퍼런스 이미지가 없을 때 특히 효과적입니다.
+                </div>
+              </div>
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {MOOD_OPTIONS.map((opt) => (
+                <button key={opt.value} onClick={() => setMood(mood === opt.value ? '' : opt.value)}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all border-2 ${mood === opt.value ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text" value={mood} onChange={(e) => setMood(e.target.value)}
+              placeholder="직접 입력 (예: 따뜻한 감성 야외 촬영, 어두운 스튜디오 무드)"
+              className="w-full p-4 bg-gray-50/80 rounded-2xl text-sm border border-gray-200 focus:border-[#1A1A1A] focus:bg-white transition-all outline-none font-medium"
+            />
+          </div>
+        </>
       )}
 
       {/* 사용 인공지능 모델 */}

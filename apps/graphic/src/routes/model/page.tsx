@@ -59,9 +59,12 @@ export default function ModelPage() {
           activeTab="model"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
           negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
+          category="" setCategory={() => {}}
           material="" setMaterial={() => {}}
           fit="" setFit={() => {}}
           colorSwatch="" setColorSwatch={() => {}}
+          season="" setSeason={() => {}}
+          mood="" setMood={() => {}}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           modelType={modelType} setModelType={setModelType}

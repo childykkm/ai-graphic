@@ -17,9 +17,12 @@ export interface GenerationOptions {
   imagesPerShot: number;
   customPrompt: string;
   negativePrompt: string;
+  category: string;
   material: string;
   fit: string;
   colorSwatch: string;
+  season: string;
+  mood: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;

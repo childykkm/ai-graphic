@@ -23,9 +23,12 @@ export function usePageState(activeTab: ActiveTab) {
   const [openSections, setOpenSections] = useState(DEFAULT_SECTIONS);
   const [customPrompt, setCustomPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
+  const [category, setCategory] = useState('');
   const [material, setMaterial] = useState('');
   const [fit, setFit] = useState('');
   const [colorSwatch, setColorSwatch] = useState('');
+  const [season, setSeason] = useState('');
+  const [mood, setMood] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('2:3');
   const [imageSize, setImageSize] = useState<ImageSize>('2K');
   const [imagesPerShot, setImagesPerShot] = useState(1);
@@ -69,6 +72,7 @@ export function usePageState(activeTab: ActiveTab) {
     generate({
       activeTab, count, aspectRatio, imageSize, imagesPerShot,
       customPrompt, negativePrompt, material, fit, colorSwatch,
+      category, season, mood,
       gazeVariation, poseVariation, viewVariation,
       floorStyle, floorBgColor, modelType, modelBgColor,
       // graphic
@@ -115,9 +119,12 @@ export function usePageState(activeTab: ActiveTab) {
     openSections, toggle,
     customPrompt, setCustomPrompt,
     negativePrompt, setNegativePrompt,
+    category, setCategory,
     material, setMaterial,
     fit, setFit,
     colorSwatch, setColorSwatch,
+    season, setSeason,
+    mood, setMood,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,
