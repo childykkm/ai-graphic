@@ -12,6 +12,10 @@ export interface PersonSlot {
   logoImages: UploadedImage[];
   imageRef: React.RefObject<HTMLInputElement | null>;
   logoRef: React.RefObject<HTMLInputElement | null>;
+  modelGender: string;
+  modelAgeGroup: string;
+  modelHeight: string;
+  modelBodyType: string;
 }
 
 function createPersonSlot(): PersonSlot {
@@ -20,6 +24,10 @@ function createPersonSlot(): PersonSlot {
     logoImages: [],
     imageRef: { current: null },
     logoRef: { current: null },
+    modelGender: '',
+    modelAgeGroup: '',
+    modelHeight: '',
+    modelBodyType: '',
   };
 }
 
@@ -101,6 +109,12 @@ export function useMultiPersonUpload(onError: (msg: string) => void) {
     setBgImages((prev) => prev.filter((img) => img.id !== id));
   };
 
+  const updatePersonModelSettings = (personIndex: number, key: keyof Pick<PersonSlot, 'modelGender' | 'modelAgeGroup' | 'modelHeight' | 'modelBodyType'>, value: string) => {
+    setPersons((prev) => prev.map((p, i) =>
+      i === personIndex ? { ...p, [key]: value } : p
+    ));
+  };
+
   const resetAll = () => {
     setPersonCountState(1);
     setPersons([createPersonSlot()]);
@@ -120,6 +134,7 @@ export function useMultiPersonUpload(onError: (msg: string) => void) {
     removePersonImage,
     removeLogoImage,
     removeBgImage,
+    updatePersonModelSettings,
     resetAll,
     MAX_PERSON_COUNT,
     MAX_PERSON_IMAGES,

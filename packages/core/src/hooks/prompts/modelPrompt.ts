@@ -1,6 +1,6 @@
 import type { GeminiPart } from '../../types/api';
 import type { UploadedImage } from '../../types/image';
-import { FASHION_ROLE_PROMPT, QUALITY_PROMPT } from './shared';
+import { FASHION_ROLE_PROMPT, QUALITY_PROMPT, buildModelSettingsPrompt, buildGarmentSizePrompt } from './shared';
 
 export const MODEL_SHOTS = [
   { id: 0, name: 'Extreme Close-Up Portrait', desc: 'Focus entirely on the model\'s face. Eyes, skin texture, and facial features must be sharp and highly detailed — an intimate extreme close-up portrait.' },
@@ -29,6 +29,11 @@ export function getColorName(hex: string): string {
 interface ModelPromptOptions {
   customPrompt: string;
   negativePrompt: string;
+  garmentSize: string;
+  modelGender: string;
+  modelAgeGroup: string;
+  modelHeight: string;
+  modelBodyType: string;
   modelBgColor: string;
   modelReferenceImages: UploadedImage[];
 }
@@ -44,7 +49,9 @@ export function buildModelGeminiParts(opts: ModelPromptOptions, shotIndex: numbe
   prompt += `[Required Guidelines]:\n`;
   prompt += `- Identity Consistency: The model's face, eye color, hair (color/style), skin tone, and outfit must remain 100% identical to the reference.\n`;
   prompt += `- Background: Clean solid studio background in "${bgColName}" (Hex: ${opts.modelBgColor}). No gradients, no textures.\n\n`;
-  prompt += `[Current Shot — ${shot.name}]:\n${shot.desc}\n\n`;
+  prompt += buildGarmentSizePrompt(opts.garmentSize);
+  prompt += buildModelSettingsPrompt(opts.modelGender, opts.modelAgeGroup, opts.modelHeight, opts.modelBodyType);
+  prompt += `\n[Current Shot — ${shot.name}]:\n${shot.desc}\n\n`;
   prompt += `[Critical Constraints]:\n`;
   prompt += `- Exactly ONE cut, ONE subject only. Absolutely no collage or split-grid layout.\n`;
   prompt += `- No unnecessary text, watermarks, or unrelated logos anywhere in the image.\n`;
@@ -69,6 +76,8 @@ const GPT_MODEL_SHOTS = [
 export function buildModelGptPrompt(opts: ModelPromptOptions, shotIndex: number): string {
   const shot = GPT_MODEL_SHOTS[shotIndex];
   const bgColor = opts.modelBgColor === '#FFFFFF' ? 'white' : opts.modelBgColor;
+  const size    = opts.garmentSize ? ` Garment size: ${opts.garmentSize}.` : '';
+  const model   = buildModelSettingsPrompt(opts.modelGender, opts.modelAgeGroup, opts.modelHeight, opts.modelBodyType);
   const negative = opts.negativePrompt ? ` Strictly avoid: ${opts.negativePrompt}.` : '';
-  return shot.prompt(bgColor, opts.customPrompt) + negative;
+  return shot.prompt(bgColor, opts.customPrompt) + size + model + negative;
 }

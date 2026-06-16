@@ -29,6 +29,11 @@ export function usePageState(activeTab: ActiveTab) {
   const [colorSwatch, setColorSwatch] = useState('');
   const [season, setSeason] = useState('');
   const [mood, setMood] = useState('');
+  const [garmentSize, setGarmentSize] = useState('');
+  const [modelGender, setModelGender] = useState('');
+  const [modelAgeGroup, setModelAgeGroup] = useState('');
+  const [modelHeight, setModelHeight] = useState('');
+  const [modelBodyType, setModelBodyType] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('2:3');
   const [imageSize, setImageSize] = useState<ImageSize>('2K');
   const [imagesPerShot, setImagesPerShot] = useState(1);
@@ -72,7 +77,8 @@ export function usePageState(activeTab: ActiveTab) {
     generate({
       activeTab, count, aspectRatio, imageSize, imagesPerShot,
       customPrompt, negativePrompt, material, fit, colorSwatch,
-      category, season, mood,
+      category, season, mood, garmentSize,
+      modelGender, modelAgeGroup, modelHeight, modelBodyType,
       gazeVariation, poseVariation, viewVariation,
       floorStyle, floorBgColor, modelType, modelBgColor,
       // graphic
@@ -88,6 +94,10 @@ export function usePageState(activeTab: ActiveTab) {
       personCount: multiUpload.personCount,
       multiPersonImages: multiUpload.persons.map((p) => p.images),
       multiPersonLogoImages: multiUpload.persons.map((p) => p.logoImages),
+      multiPersonGenders: multiUpload.persons.map((p) => p.modelGender),
+      multiPersonAgeGroups: multiUpload.persons.map((p) => p.modelAgeGroup),
+      multiPersonHeights: multiUpload.persons.map((p) => p.modelHeight),
+      multiPersonBodyTypes: multiUpload.persons.map((p) => p.modelBodyType),
       multiBackgroundImages: multiUpload.bgImages,
       // floor
       floorFrontImages: images.floorFront,
@@ -125,6 +135,11 @@ export function usePageState(activeTab: ActiveTab) {
     colorSwatch, setColorSwatch,
     season, setSeason,
     mood, setMood,
+    garmentSize, setGarmentSize,
+    modelGender, setModelGender,
+    modelAgeGroup, setModelAgeGroup,
+    modelHeight, setModelHeight,
+    modelBodyType, setModelBodyType,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,

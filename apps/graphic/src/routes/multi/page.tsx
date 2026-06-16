@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Image as ImageIcon, Settings2, Minus, Plus } from 'lucide-react';
-import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
+import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput, ModelSettings } from '@repo/ui';
 import { usePageState, useHistorySave } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
 import type { BrandName } from '@repo/ui';
@@ -35,6 +35,7 @@ export default function MultiPage() {
     bgImages, bgRef,
     processPersonImages, processLogoImages, processBgImages,
     removePersonImage, removeLogoImage, removeBgImage,
+    updatePersonModelSettings,
     MAX_PERSON_COUNT,
   } = multiUpload;
 
@@ -81,6 +82,7 @@ export default function MultiPage() {
           colorSwatch="" setColorSwatch={() => {}}
           season="" setSeason={() => {}}
           mood="" setMood={() => {}}
+          garmentSize="" setGarmentSize={() => {}}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}
@@ -165,6 +167,15 @@ export default function MultiPage() {
               variant="list" hoverColor="blue"
             />
           </div>
+          <ModelSettings
+            value={{ gender: person.modelGender, ageGroup: person.modelAgeGroup, height: person.modelHeight, bodyType: person.modelBodyType }}
+            onChange={(v) => {
+              updatePersonModelSettings(i, 'modelGender', v.gender);
+              updatePersonModelSettings(i, 'modelAgeGroup', v.ageGroup);
+              updatePersonModelSettings(i, 'modelHeight', v.height);
+              updatePersonModelSettings(i, 'modelBodyType', v.bodyType);
+            }}
+          />
         </CollapsibleSection>
       ))}
 

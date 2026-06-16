@@ -30,6 +30,7 @@ export default function FloorPage() {
     colorSwatch, setColorSwatch,
     season, setSeason,
     mood, setMood,
+    garmentSize, setGarmentSize,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     count, setCount,
@@ -81,6 +82,7 @@ export default function FloorPage() {
           colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
           season={season} setSeason={setSeason}
           mood={mood} setMood={setMood}
+          garmentSize={garmentSize} setGarmentSize={setGarmentSize}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}

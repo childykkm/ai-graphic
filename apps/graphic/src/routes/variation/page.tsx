@@ -28,6 +28,7 @@ export default function VariationPage() {
     colorSwatch, setColorSwatch,
     season, setSeason,
     mood, setMood,
+    garmentSize, setGarmentSize,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,
@@ -81,6 +82,7 @@ export default function VariationPage() {
           colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
           season={season} setSeason={setSeason}
           mood={mood} setMood={setMood}
+          garmentSize={garmentSize} setGarmentSize={setGarmentSize}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           imagesPerShot={imagesPerShot} setImagesPerShot={setImagesPerShot}

@@ -1,8 +1,8 @@
 import type { GeminiPart } from '../../types/api';
 import type { UploadedImage } from '../../types/image';
-import { buildLayoutPrompt, pushImageParts } from './shared';
+import { buildLayoutPrompt, buildModelSettingsPrompt, buildGarmentSizePrompt, pushImageParts } from './shared';
 
-const PERSON_LABELS = ['첫 번째', '두 번째', '세 번째'] as const;
+const PERSON_LABELS = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'] as const;
 
 const ROLE_AND_QUALITY_PROMPT = `[Role & Objective]
 You are an expert fashion commercial photographer and AI image synthesizer. Your primary goal is to generate high-fidelity, professional concept cuts of apparel on a horizon studio background.
@@ -31,8 +31,13 @@ interface MultiPromptOptions {
   customPrompt: string;
   negativePrompt: string;
   personCount: number;
+  garmentSize: string;
   multiPersonImages: UploadedImage[][];
   multiPersonLogoImages: UploadedImage[][];
+  multiPersonGenders: string[];
+  multiPersonAgeGroups: string[];
+  multiPersonHeights: string[];
+  multiPersonBodyTypes: string[];
   multiBackgroundImages: UploadedImage[];
 }
 
@@ -40,53 +45,51 @@ export function buildMultiGeminiParts(opts: MultiPromptOptions): { parts: Gemini
   const parts: GeminiPart[] = [];
 
   let prompt = ROLE_AND_QUALITY_PROMPT;
-  prompt += `\n\n[컨셉/무드 렌더링 지침]\n총 ${opts.personCount}명의 등장인물이 포함된 이미지를 생성하세요.`;
+  prompt += `\n\n[Task]: Generate a high-fidelity fashion editorial image featuring exactly ${opts.personCount} person(s).`;
   prompt += buildLayoutPrompt(opts.imagesPerShot);
-  prompt += `\n[인물 일관성 지침]: 각 인물의 얼굴, 체형, 의상, 헤어스타일이 제공된 레퍼런스 사진과 100% 동일하게 유지되어야 합니다.`;
+  prompt += `\n[Person Identity Consistency]: Each person's face, physique, outfit, and hairstyle must remain 100% identical to their respective reference images.`;
 
   if (opts.multiBackgroundImages.length > 0) {
-    prompt += `\n[배경 지침]: 업로드된 '배경 설정용 컨셉/무드 이미지'의 톤앤매너, 사진 스타일, 보정 느낌, 조명 등 분위기를 완벽히 분석하여 전체 배경 상황에 반영하세요.`;
+    prompt += `\n[Background Reference]: Background mood images are provided — match the lighting, color tone, and atmosphere exactly.`;
   }
-
-  if (opts.customPrompt) {
-    prompt += `\n[인물 간 관계 및 상황 연출 지침]: ${opts.customPrompt}`;
-  }
-
-  if (opts.negativePrompt) {
-    prompt += `\n[추가 제외 지침]: 다음 사항도 절대 포함하지 마세요 — ${opts.negativePrompt}`;
-  }
-
-  prompt += `\n[최우선 절대 제약]: 이미지 내부에 불필요한 텍스트, 워터마크가 포함되어서는 안 됩니다.`;
+  if (opts.garmentSize) prompt += buildGarmentSizePrompt(opts.garmentSize);
+  if (opts.customPrompt) prompt += `\n[Scene Direction & Relationship]: ${opts.customPrompt}`;
+  if (opts.negativePrompt) prompt += `\n[Additional Exclusions — strictly forbidden]: ${opts.negativePrompt}`;
+  prompt += `\n[Final Constraint]: No unnecessary text or watermarks anywhere in the image.`;
 
   // 인물별 이미지 파트
   Array.from({ length: opts.personCount }, (_, i) => {
     const personImages = opts.multiPersonImages[i] ?? [];
     const logoImages = opts.multiPersonLogoImages[i] ?? [];
+    const label = PERSON_LABELS[i] ?? `${i + 1}th`;
+    const modelSpec = buildModelSettingsPrompt(
+      opts.multiPersonGenders[i] ?? '',
+      opts.multiPersonAgeGroups[i] ?? '',
+      opts.multiPersonHeights[i] ?? '',
+      opts.multiPersonBodyTypes[i] ?? '',
+    );
     if (personImages.length > 0) {
       pushImageParts(
         parts,
-        `[${PERSON_LABELS[i] ?? `${i + 1}번째`} 등장인물 참고 이미지] 이 인물의 외모와 특징을 참고하여 ${PERSON_LABELS[i] ?? `${i + 1}번째`} 인물을 생성하세요.`,
+        `[${label} Person — Reference Image] Reproduce this person's appearance and outfit exactly.${modelSpec}`,
         personImages,
         true,
       );
+    } else if (modelSpec) {
+      parts.push({ text: `[${label} Person — Specifications]${modelSpec}` });
     }
     if (logoImages.length > 0) {
       pushImageParts(
         parts,
-        `[${PERSON_LABELS[i] ?? `${i + 1}번째`} 등장인물 로고/아트웍 디테일] 이 아트웍이나 그래픽, 질감 및 디테일을 ${PERSON_LABELS[i] ?? `${i + 1}번째`} 인물의 의류에 정확히 재현해 합성해주세요.`,
+        `[${label} Person — Logo/Artwork Detail] Reproduce this graphic/artwork exactly on the ${label.toLowerCase()} person's clothing.`,
         logoImages,
         true,
       );
     }
   });
 
-  // 배경 이미지
   if (opts.multiBackgroundImages.length > 0) {
-    pushImageParts(
-      parts,
-      '[배경 설정용 컨셉/무드 이미지] 이 이미지들의 무드를 참고해 배경을 설정하세요.',
-      opts.multiBackgroundImages,
-    );
+    pushImageParts(parts, `[Background & Mood Reference] Use these images to set the background mood, lighting, and atmosphere.`, opts.multiBackgroundImages);
   }
 
   return { parts, prompt };
@@ -100,16 +103,29 @@ export function buildMultiGptPrompt(opts: MultiPromptOptions): string {
   const bg = opts.multiBackgroundImages.length > 0
     ? 'Reproduce the mood, lighting, color tone, and atmosphere of the provided background reference exactly. '
     : '';
-  const negative = opts.negativePrompt
-    ? ` Additionally avoid: ${opts.negativePrompt}.`
-    : '';
+  const size = opts.garmentSize ? buildGarmentSizePrompt(opts.garmentSize).replace('\n', ' ') : '';
+  const negative = opts.negativePrompt ? ` Additionally avoid: ${opts.negativePrompt}.` : '';
+
+  // 인물별 모델 설정 주입
+  const personSpecs = Array.from({ length: opts.personCount }, (_, i) => {
+    const label = PERSON_LABELS[i] ?? `${i + 1}th`;
+    const spec = buildModelSettingsPrompt(
+      opts.multiPersonGenders[i] ?? '',
+      opts.multiPersonAgeGroups[i] ?? '',
+      opts.multiPersonHeights[i] ?? '',
+      opts.multiPersonBodyTypes[i] ?? '',
+    );
+    return spec ? `${label} person — ${spec.replace('\n[Model Specifications]: ', '')}` : '';
+  }).filter(Boolean).join('; ');
+
+  const personSpecPrompt = personSpecs ? ` Person specifications: ${personSpecs}.` : '';
 
   return `You are an expert fashion commercial photographer. Generate a high-fidelity, professional concept cut featuring ${opts.personCount} model(s). `
     + `CRITICAL: Maintain absolute fidelity and sharpness of all graphics, logos, and artworks on clothing — no blur, warp, or pixelation. `
     + `Render all artwork as crisp vector-quality printing with sharp edges. `
     + `8k resolution, hyper-detailed fabric texture, deep depth of field (f/8–f/11), zero compression artifacts. `
     + `Accurately reproduce each person's appearance, outfit, and any provided logo/artwork details exactly as shown in the reference images. `
-    + `${bg}${situation}${layout}`
+    + `${bg}${situation}${size}${personSpecPrompt}${layout}`
     + `Negative: blurry graphics, pixelated artwork, distorted text, warped logo, low quality apparel, fuzzy print${negative}. `
     + `No watermarks or text overlays.`;
 }

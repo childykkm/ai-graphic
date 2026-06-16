@@ -10,6 +10,8 @@ import {
   buildVariationPromptsEn,
   buildProductMetaPrompt,
   buildProductMetaPromptEn,
+  buildModelSettingsPrompt,
+  buildGarmentSizePrompt,
   pushImageParts,
 } from './shared';
 
@@ -23,6 +25,11 @@ interface GraphicPromptOptions {
   colorSwatch: string;
   season: string;
   mood: string;
+  garmentSize: string;
+  modelGender: string;
+  modelAgeGroup: string;
+  modelHeight: string;
+  modelBodyType: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;
@@ -51,6 +58,8 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
   prompt += buildLayoutPrompt(opts.imagesPerShot);
   prompt += GARMENT_DETAIL_PROMPT;
   prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
+  prompt += buildGarmentSizePrompt(opts.garmentSize);
+  prompt += buildModelSettingsPrompt(opts.modelGender, opts.modelAgeGroup, opts.modelHeight, opts.modelBodyType);
   prompt += gazePrompt + posePrompt + viewPrompt;
 
   if (opts.refModelImages.length > 0) {
@@ -64,20 +73,15 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
   }
   prompt += `\n[Final Constraint]: No text overlays, no watermarks, no logos unrelated to the garment.`;
 
-  // 이미지 파트는 프롬프트 뒤에 위치
-  // PRIMARY: 메인 실루엣 기준 이미지 (가장 높은 우선순위)
   pushImageParts(parts, `[PRIMARY REFERENCE — FRONT VIEW] This is the MAIN reference image showing the front of the garment. Use this as the primary source for silhouette, color, and overall design.`, opts.graphicFrontImages, true);
   pushImageParts(parts, `[PRIMARY REFERENCE — REAR VIEW] This is the MAIN reference image showing the back of the garment. Use this as the primary source for the back design and silhouette.`, opts.graphicBackImages, true);
-  // SUPPLEMENTARY: 디테일 보조 이미지 (세부 참고용)
   pushImageParts(parts, `[SUPPLEMENTARY DETAIL — NECKLINE] Use this as a close-up reference for the neckline/collar area only. Integrate this detail into the main garment rendering.`, opts.graphicNecklineImages, true);
   pushImageParts(parts, `[SUPPLEMENTARY DETAIL — LOGO/BRAND] Use this as a close-up reference for the logo/graphic placement only. Reproduce exact position, size, and shape on the garment.`, opts.graphicLogoImages, true);
   pushImageParts(parts, `[SUPPLEMENTARY DETAIL — FABRIC/PATTERN] Use this as a close-up reference for fabric texture and pattern only. Apply this texture to the garment surface.`, opts.graphicDetailImages, true);
   pushImageParts(parts, `[SUPPLEMENTARY REFERENCE — STYLING] Use this as a supplementary styling and layout reference only.`, opts.graphicOtherImages, true);
-  // MODEL REFERENCE: 모델 외모/체형 참고
   if (opts.refModelImages.length > 0) {
     pushImageParts(parts, `[MODEL REFERENCE] The following image(s) show the reference model. Reproduce this person's face, physique, skin tone, and hairstyle as the model in the generated image. Model identity must be consistent across all generated cuts.`, opts.refModelImages);
   }
-  // BACKGROUND REFERENCE: 배경/무드 참고
   if (opts.bgImages.length > 0) {
     pushImageParts(parts, `[BACKGROUND & MOOD REFERENCE] The following image(s) define the background mood. Match the lighting, color tone, atmosphere, and overall mood of these images for the background of the generated editorial.`, opts.bgImages);
   }
@@ -85,7 +89,7 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
   return { parts, prompt };
 }
 
-export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPrompt' | 'negativePrompt' | 'category' | 'material' | 'fit' | 'colorSwatch' | 'season' | 'mood' | 'imagesPerShot' | 'gazeVariation' | 'poseVariation' | 'viewVariation' | 'graphicNecklineImages' | 'graphicLogoImages' | 'graphicDetailImages'>): string {
+export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPrompt' | 'negativePrompt' | 'category' | 'material' | 'fit' | 'colorSwatch' | 'season' | 'mood' | 'garmentSize' | 'modelGender' | 'modelAgeGroup' | 'modelHeight' | 'modelBodyType' | 'imagesPerShot' | 'gazeVariation' | 'poseVariation' | 'viewVariation' | 'graphicNecklineImages' | 'graphicLogoImages' | 'graphicDetailImages'>): string {
   const { gazeEn, poseEn, viewEn } = buildVariationPromptsEn(opts.gazeVariation, opts.poseVariation, opts.viewVariation);
   const custom = opts.customPrompt ? `${opts.customPrompt}. ` : '';
   const layout = opts.imagesPerShot > 1
@@ -94,7 +98,9 @@ export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPr
   const neckline = opts.graphicNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.graphicLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.graphicDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
-  const meta = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
+  const meta     = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
+  const size     = opts.garmentSize ? ` Garment size: ${opts.garmentSize}.` : '';
+  const model    = buildModelSettingsPrompt(opts.modelGender, opts.modelAgeGroup, opts.modelHeight, opts.modelBodyType);
 
-  return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}${meta}No text or watermarks.`;
+  return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}${meta}${size}${model}No text or watermarks.`;
 }

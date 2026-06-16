@@ -140,6 +140,42 @@ export function buildProductMetaPromptEn(material: string, fit: string, colorSwa
 
 // ── Image part pusher ────────────────────────────────────────────────────────
 
+export function buildModelSettingsPrompt(gender: string, ageGroup: string, height: string, bodyType: string): string {
+  const parts: string[] = [];
+  if (gender) parts.push(`gender: ${gender === '여성' ? 'female' : 'male'}`);
+  if (ageGroup) {
+    const ageMap: Record<string, string> = {
+      '10대': 'teens (10s)',
+      '20대': 'twenties (20s)',
+      '30대': 'thirties (30s)',
+    };
+    parts.push(`age group: ${ageMap[ageGroup] ?? ageGroup}`);
+  }
+  if (height) parts.push(`height: ${height}`);
+  if (bodyType) {
+    const bodyMap: Record<string, string> = { '슬림': 'slim/lean build', '보통': 'average/standard build', '풍성한': 'fuller/plus-size build' };
+    parts.push(`body type: ${bodyMap[bodyType] ?? bodyType}`);
+  }
+  if (parts.length === 0) return '';
+  return `\n[Model Specifications]: ${parts.join(', ')}. Generate the model accordingly.`;
+}
+
+export function buildGarmentSizePrompt(size: string): string {
+  if (!size) return '';
+  const isKids = size.startsWith('아동 ');
+  const isAdult = size.startsWith('성인 ');
+  const sizeValue = size.replace('성인 ', '').replace('아동 ', '');
+
+  if (isKids) {
+    return `\n[Garment Size — Children's]: This is a children's garment in size ${sizeValue}. The model must be a child with proportions matching this size. Reflect appropriate fit and drape for children's clothing.`;
+  }
+  if (isAdult) {
+    return `\n[Garment Size — Adult]: This is an adult garment in size ${sizeValue}. Reflect appropriate fit proportions and drape for this adult size on the model.`;
+  }
+  // 직접 입력의 경우 그대로 주입
+  return `\n[Garment Size]: The clothing size is "${size}". Reflect appropriate fit proportions and drape for this size on the model.`;
+}
+
 export function pushImageParts(
   parts: GeminiPart[],
   label: string,

@@ -1,6 +1,60 @@
 import { Info } from 'lucide-react';
+import { useState } from 'react';
 import { ColorPicker } from '../ColorPicker/ColorPicker';
 import type { AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType } from '@repo/core';
+
+const ADULT_SIZES = ['85', '90', '95', '100', '105', '110'];
+const KIDS_SIZES  = ['100', '110', '120', '130', '140', '150', '160', 'FREE'];
+const ALL_PRESET_SIZES = [...ADULT_SIZES, ...KIDS_SIZES];
+
+function GarmentSizeSelector({ garmentSize, setGarmentSize }: { garmentSize: string; setGarmentSize: (v: string) => void }) {
+  const [group, setGroup] = useState<'adult' | 'kids'>('adult');
+  const sizes = group === 'adult' ? ADULT_SIZES : KIDS_SIZES;
+
+  return (
+    <div className="space-y-4">
+      <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+        의상 사이즈 (선택)
+        <div className="group relative">
+          <Info size={16} className="text-gray-300 cursor-help" />
+          <div className="absolute top-1/2 left-full ml-2 w-56 text-left -translate-y-1/2 p-2.5 bg-gray-800 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl font-medium leading-relaxed">
+            의류 사이즈를 입력하면 AI가 해당 사이즈에 맞는 핏감과 드레이프를 더 정확하게 표현합니다.
+          </div>
+        </div>
+      </label>
+      {/* 성인/아동 탭 */}
+      <div className="flex gap-2">
+        {(['adult', 'kids'] as const).map((g) => (
+          <button key={g} onClick={() => { setGroup(g); setGarmentSize(''); }}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${group === g ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
+            {g === 'adult' ? '성인' : '아동'}
+          </button>
+        ))}
+      </div>
+      {/* 사이즈 버튼 */}
+      <div className="flex flex-wrap gap-2">
+        {sizes.map((opt) => {
+          // 프롬프트에 주입될 값: "성인 90" 또는 "아동 110" 형식
+          const promptValue = `${group === 'adult' ? '성인' : '아동'} ${opt}`;
+          return (
+            <button key={opt} onClick={() => setGarmentSize(garmentSize === promptValue ? '' : promptValue)}
+              className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all border-2 ${garmentSize === promptValue ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+      <input
+        type="text"
+        value={ALL_PRESET_SIZES.includes(garmentSize.replace('성인 ', '').replace('아동 ', '')) ? '' : garmentSize}
+        onChange={(e) => setGarmentSize(e.target.value)}
+        placeholder="직접 입력 (예: 성인 115, 아동 135, FREE)"
+        className="w-full p-4 bg-gray-50/80 rounded-2xl text-sm border border-gray-200 focus:border-[#1A1A1A] focus:bg-white transition-all outline-none font-medium"
+      />
+    </div>
+  );
+}
+
 
 const CATEGORY_OPTIONS = ['티셔츠', '맨투맨', '후드', '셔츠', '니트', '아우터', '바지', '스커트', '원피스', '코트', '점퍼/패딩'];
 const SEASON_OPTIONS = [
@@ -35,6 +89,8 @@ interface TuningSectionProps {
   setFit: (v: string) => void;
   colorSwatch: string;
   setColorSwatch: (v: string) => void;
+  garmentSize: string;
+  setGarmentSize: (v: string) => void;
   season: string;
   setSeason: (v: string) => void;
   mood: string;
@@ -74,6 +130,7 @@ export function TuningSection({
   material, setMaterial,
   fit, setFit,
   colorSwatch, setColorSwatch,
+  garmentSize, setGarmentSize,
   season, setSeason,
   mood, setMood,
   aspectRatio, setAspectRatio,
@@ -90,7 +147,7 @@ export function TuningSection({
   aspectRatios,
 }: TuningSectionProps) {
 
-  const isProductTab = activeTab === 'graphic' || activeTab === 'floor' || activeTab === 'variation';
+  const isProductTab = activeTab === 'graphic' || activeTab === 'floor' || activeTab === 'model' || activeTab === 'multi';
 
   return (
     <div className="space-y-8">
@@ -151,6 +208,11 @@ export function TuningSection({
             className="w-full p-4 bg-gray-50/80 rounded-2xl text-sm border border-gray-200 focus:border-[#1A1A1A] focus:bg-white transition-all outline-none font-medium"
           />
         </div>
+      )}
+
+      {/* 의상 사이즈 (성인/아동 탭) */}
+      {isProductTab && (
+        <GarmentSizeSelector garmentSize={garmentSize} setGarmentSize={setGarmentSize} />
       )}
 
       {/* 소재 (상품 탭만) */}

@@ -23,6 +23,11 @@ export interface GenerationOptions {
   colorSwatch: string;
   season: string;
   mood: string;
+  garmentSize: string;
+  modelGender: string;
+  modelAgeGroup: string;
+  modelHeight: string;
+  modelBodyType: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;
@@ -43,6 +48,10 @@ export interface GenerationOptions {
   personCount: number;
   multiPersonImages: UploadedImage[][];
   multiPersonLogoImages: UploadedImage[][];
+  multiPersonGenders: string[];
+  multiPersonAgeGroups: string[];
+  multiPersonHeights: string[];
+  multiPersonBodyTypes: string[];
   multiBackgroundImages: UploadedImage[];
   // floor
   floorFrontImages: UploadedImage[];
