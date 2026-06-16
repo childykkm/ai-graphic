@@ -18,6 +18,13 @@ export default function MultiPage() {
     openSections, toggle,
     customPrompt, setCustomPrompt,
     negativePrompt, setNegativePrompt,
+    garmentSize, setGarmentSize,
+    category, setCategory,
+    material, setMaterial,
+    fit, setFit,
+    colorSwatch, setColorSwatch,
+    season, setSeason,
+    mood, setMood,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     count, setCount,
@@ -76,13 +83,13 @@ export default function MultiPage() {
           activeTab="multi"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
           negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
-          category="" setCategory={() => {}}
-          material="" setMaterial={() => {}}
-          fit="" setFit={() => {}}
-          colorSwatch="" setColorSwatch={() => {}}
-          season="" setSeason={() => {}}
-          mood="" setMood={() => {}}
-          garmentSize="" setGarmentSize={() => {}}
+          category={category} setCategory={setCategory}
+          material={material} setMaterial={setMaterial}
+          fit={fit} setFit={setFit}
+          colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
+          season={season} setSeason={setSeason}
+          mood={mood} setMood={setMood}
+          garmentSize={garmentSize} setGarmentSize={setGarmentSize}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           count={count} setCount={setCount}
