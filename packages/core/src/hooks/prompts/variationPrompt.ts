@@ -8,21 +8,12 @@ import {
   buildLayoutPrompt,
   buildVariationPrompts,
   buildVariationPromptsEn,
-  buildProductMetaPrompt,
-  buildProductMetaPromptEn,
   pushImageParts,
 } from './shared';
 
 interface VariationPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
-  negativePrompt: string;
-  category: string;
-  material: string;
-  fit: string;
-  colorSwatch: string;
-  season: string;
-  mood: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;
@@ -46,7 +37,6 @@ export function buildVariationGeminiParts(opts: VariationPromptOptions): { parts
   prompt += `\n[CRITICAL — Garment Identity Lock]: The EXACT same garment must appear in the output — identical color, print, logo placement, cut, silhouette, and fabric. Any modification to the clothing itself is strictly forbidden. Only the model's pose, gaze, and camera angle may change.\n`;
   prompt += buildLayoutPrompt(opts.imagesPerShot);
   prompt += GARMENT_DETAIL_PROMPT;
-  prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
   prompt += gazePrompt + posePrompt + viewPrompt;
   if (opts.customPrompt) prompt += `\n[Custom Instructions]: ${opts.customPrompt}`;
   prompt += `\n[Final Constraint]: No text overlays, no watermarks.`;
@@ -73,7 +63,6 @@ export function buildVariationGptPrompt(opts: VariationPromptOptions): string {
   const neckline = opts.variationNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.variationLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.variationDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
-  const meta = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
 
-  return `${custom}High-quality photorealistic fashion variation shot. CRITICAL — The EXACT same garment must appear: identical color, print, logo, cut, silhouette, and fabric — no modifications to the clothing whatsoever. Only the model's pose, gaze, and camera angle may change. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}${meta}No text or watermarks.`;
+  return `${custom}High-quality photorealistic fashion variation shot. CRITICAL — The EXACT same garment must appear: identical color, print, logo, cut, silhouette, and fabric — no modifications to the clothing whatsoever. Only the model's pose, gaze, and camera angle may change. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}No text or watermarks.`;
 }

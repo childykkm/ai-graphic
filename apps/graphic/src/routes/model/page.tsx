@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Image as ImageIcon, Settings2 } from 'lucide-react';
-import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput, ModelSettings } from '@repo/ui';
+import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, useHistorySave } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
 import type { BrandName } from '@repo/ui';
@@ -15,18 +15,6 @@ export default function ModelPage() {
   const {
     openSections, toggle,
     customPrompt, setCustomPrompt,
-    negativePrompt, setNegativePrompt,
-    garmentSize, setGarmentSize,
-    category, setCategory,
-    material, setMaterial,
-    fit, setFit,
-    colorSwatch, setColorSwatch,
-    season, setSeason,
-    mood, setMood,
-    modelGender, setModelGender,
-    modelAgeGroup, setModelAgeGroup,
-    modelHeight, setModelHeight,
-    modelBodyType, setModelBodyType,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     modelType, setModelType,
@@ -69,14 +57,6 @@ export default function ModelPage() {
         <TuningSection
           activeTab="model"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
-          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
-          category={category} setCategory={setCategory}
-          material={material} setMaterial={setMaterial}
-          fit={fit} setFit={setFit}
-          colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
-          season={season} setSeason={setSeason}
-          mood={mood} setMood={setMood}
-          garmentSize={garmentSize} setGarmentSize={setGarmentSize}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           modelType={modelType} setModelType={setModelType}
@@ -98,10 +78,6 @@ export default function ModelPage() {
           inputRef={refs.modelReference} onFiles={processFiles} onRemove={removeImage}
           onFullscreen={setSelectedFullscreen}
           placeholder="모델 사진 드롭 또는 클릭 (최대 5장)" variant="list" hoverColor="indigo"
-        />
-        <ModelSettings
-          value={{ gender: modelGender, ageGroup: modelAgeGroup, height: modelHeight, bodyType: modelBodyType }}
-          onChange={(v) => { setModelGender(v.gender); setModelAgeGroup(v.ageGroup); setModelHeight(v.height); setModelBodyType(v.bodyType); }}
         />
       </CollapsibleSection>
 

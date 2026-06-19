@@ -6,9 +6,6 @@ import {
   GARMENT_DETAIL_PROMPT,
   GPT_DETAIL_INSTRUCTIONS,
   buildLayoutPrompt,
-  buildProductMetaPrompt,
-  buildProductMetaPromptEn,
-  buildGarmentSizePrompt,
   pushImageParts,
 } from './shared';
 
@@ -38,14 +35,6 @@ const FLOOR_STYLE_LABEL_EN: Record<FloorStyle, string> = {
 interface FloorPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
-  negativePrompt: string;
-  category: string;
-  material: string;
-  fit: string;
-  colorSwatch: string;
-  season: string;
-  mood: string;
-  garmentSize: string;
   floorStyle: FloorStyle;
   floorBgColor: string;
   floorFrontImages: UploadedImage[];
@@ -66,8 +55,6 @@ export function buildFloorGeminiParts(opts: FloorPromptOptions): { parts: Gemini
   prompt += `\n[Task]: You are given ${total} product image(s). Accurately identify the garment and render it as a clean, professional e-commerce floor cut suitable for a product detail page.\n`;
   prompt += buildLayoutPrompt(opts.imagesPerShot);
   prompt += GARMENT_DETAIL_PROMPT;
-  prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
-  prompt += buildGarmentSizePrompt(opts.garmentSize);
   prompt += `\n[Floor Style]: Generate in [${FLOOR_STYLE_LABEL[opts.floorStyle]}] style.`;
   prompt += `\n[Background]: Solid color background only — Hex Color Code: ${opts.floorBgColor}. Clean, no shadows bleeding outside the garment.`;
   if (opts.customPrompt) prompt += `\n[Custom Instructions]: ${opts.customPrompt}`;
@@ -91,10 +78,7 @@ export function buildFloorGptPrompt(opts: FloorPromptOptions, shotIndex: number)
   const neckline = opts.floorNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.floorLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.floorDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
-  const meta = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
-  const size  = buildGarmentSizePrompt(opts.garmentSize).replace('\n', ' ');
-
-  return `${custom}THIS IS CUT #${shotIndex + 1} OF A SERIES. YOU MUST GENERATE THIS SPECIFIC SHOT: ${shotDesc} The garment is ${style}. Solid ${opts.floorBgColor} background. ${neckline}${logo}${detail}${meta}${size}
+  return `${custom}THIS IS CUT #${shotIndex + 1} OF A SERIES. YOU MUST GENERATE THIS SPECIFIC SHOT: ${shotDesc} The garment is ${style}. Solid ${opts.floorBgColor} background. ${neckline}${logo}${detail}
 DO NOT generate a front view unless this is cut #1. Each cut in this series must show a DIFFERENT angle or detail. Strictly follow the shot description above.
 
 CRITICAL: Exactly 1 image, 1 composition, 1 product. No collage, no split layout.

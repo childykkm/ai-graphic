@@ -8,28 +8,12 @@ import {
   buildLayoutPrompt,
   buildVariationPrompts,
   buildVariationPromptsEn,
-  buildProductMetaPrompt,
-  buildProductMetaPromptEn,
-  buildModelSettingsPrompt,
-  buildGarmentSizePrompt,
   pushImageParts,
 } from './shared';
 
 interface GraphicPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
-  negativePrompt: string;
-  category: string;
-  material: string;
-  fit: string;
-  colorSwatch: string;
-  season: string;
-  mood: string;
-  garmentSize: string;
-  modelGender: string;
-  modelAgeGroup: string;
-  modelHeight: string;
-  modelBodyType: string;
   gazeVariation: number;
   poseVariation: number;
   viewVariation: number;
@@ -57,9 +41,6 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
   prompt += `\n[Task]: You are given ${total} product image(s) of a fashion item. Accurately identify the garment and render it as a high-end lookbook / editorial fashion photograph. All product details and characteristics must be faithfully reproduced without distortion.\n`;
   prompt += buildLayoutPrompt(opts.imagesPerShot);
   prompt += GARMENT_DETAIL_PROMPT;
-  prompt += buildProductMetaPrompt(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
-  prompt += buildGarmentSizePrompt(opts.garmentSize);
-  prompt += buildModelSettingsPrompt(opts.modelGender, opts.modelAgeGroup, opts.modelHeight, opts.modelBodyType);
   prompt += gazePrompt + posePrompt + viewPrompt;
 
   if (opts.refModelImages.length > 0) {
@@ -89,7 +70,7 @@ export function buildGraphicGeminiParts(opts: GraphicPromptOptions): { parts: Ge
   return { parts, prompt };
 }
 
-export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPrompt' | 'negativePrompt' | 'category' | 'material' | 'fit' | 'colorSwatch' | 'season' | 'mood' | 'garmentSize' | 'modelGender' | 'modelAgeGroup' | 'modelHeight' | 'modelBodyType' | 'imagesPerShot' | 'gazeVariation' | 'poseVariation' | 'viewVariation' | 'graphicNecklineImages' | 'graphicLogoImages' | 'graphicDetailImages'>): string {
+export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPrompt' | 'imagesPerShot' | 'gazeVariation' | 'poseVariation' | 'viewVariation' | 'graphicNecklineImages' | 'graphicLogoImages' | 'graphicDetailImages'>): string {
   const { gazeEn, poseEn, viewEn } = buildVariationPromptsEn(opts.gazeVariation, opts.poseVariation, opts.viewVariation);
   const custom = opts.customPrompt ? `${opts.customPrompt}. ` : '';
   const layout = opts.imagesPerShot > 1
@@ -98,9 +79,6 @@ export function buildGraphicGptPrompt(opts: Pick<GraphicPromptOptions, 'customPr
   const neckline = opts.graphicNecklineImages.length > 0 ? GPT_DETAIL_INSTRUCTIONS.neckline : '';
   const logo     = opts.graphicLogoImages.length > 0     ? GPT_DETAIL_INSTRUCTIONS.logo     : '';
   const detail   = opts.graphicDetailImages.length > 0   ? GPT_DETAIL_INSTRUCTIONS.detail   : '';
-  const meta     = buildProductMetaPromptEn(opts.material, opts.fit, opts.colorSwatch, opts.negativePrompt, opts.category, opts.season, opts.mood);
-  const size     = opts.garmentSize ? ` Garment size: ${opts.garmentSize}.` : '';
-  const model    = buildModelSettingsPrompt(opts.modelGender, opts.modelAgeGroup, opts.modelHeight, opts.modelBodyType);
 
-  return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}${meta}${size}${model}No text or watermarks.`;
+  return `${custom}High-quality photorealistic fashion editorial shot. Accurately reproduce the clothing from the reference images including all details, logos, fabric texture, and design. ${layout}${gazeEn} ${poseEn} ${viewEn} ${neckline}${logo}${detail}No text or watermarks.`;
 }

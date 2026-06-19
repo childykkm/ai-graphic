@@ -1,6 +1,6 @@
 import type { GeminiPart } from '../../types/api';
 import type { UploadedImage } from '../../types/image';
-import { buildLayoutPrompt, buildModelSettingsPrompt, buildGarmentSizePrompt, pushImageParts } from './shared';
+import { buildLayoutPrompt, pushImageParts } from './shared';
 
 const PERSON_LABELS = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'] as const;
 
@@ -23,16 +23,10 @@ blurry graphics, pixelated artwork, distorted text, low-res texture, chromatic a
 interface MultiPromptOptions {
   imagesPerShot: number;
   customPrompt: string;
-  negativePrompt: string;
   mood: string;
   personCount: number;
-  garmentSize: string;
   multiPersonImages: UploadedImage[][];
   multiPersonLogoImages: UploadedImage[][];
-  multiPersonGenders: string[];
-  multiPersonAgeGroups: string[];
-  multiPersonHeights: string[];
-  multiPersonBodyTypes: string[];
   multiBackgroundImages: UploadedImage[];
 }
 
@@ -53,30 +47,20 @@ export function buildMultiGeminiParts(opts: MultiPromptOptions): { parts: Gemini
     prompt += `\n[CRITICAL — Background Override]: Background reference images are provided. You MUST reproduce the exact location, lighting, color tone, and atmosphere from these reference images. This OVERRIDES the default studio background.`;
   }
 
-  if (opts.garmentSize) prompt += buildGarmentSizePrompt(opts.garmentSize);
   if (opts.customPrompt) prompt += `\n[Scene Direction & Relationship — people only]: ${opts.customPrompt}`;
-  if (opts.negativePrompt) prompt += `\n[Additional Exclusions — strictly forbidden]: ${opts.negativePrompt}`;
   prompt += `\n[Final Constraint]: No unnecessary text or watermarks anywhere in the image.`;
 
   Array.from({ length: opts.personCount }, (_, i) => {
     const personImages = opts.multiPersonImages[i] ?? [];
     const logoImages = opts.multiPersonLogoImages[i] ?? [];
     const label = PERSON_LABELS[i] ?? `${i + 1}th`;
-    const modelSpec = buildModelSettingsPrompt(
-      opts.multiPersonGenders[i] ?? '',
-      opts.multiPersonAgeGroups[i] ?? '',
-      opts.multiPersonHeights[i] ?? '',
-      opts.multiPersonBodyTypes[i] ?? '',
-    );
     if (personImages.length > 0) {
       pushImageParts(
         parts,
-        `[${label} Person — Reference Image] Reproduce this person's appearance and outfit exactly.${modelSpec}`,
+        `[${label} Person — Reference Image] Reproduce this person's appearance and outfit exactly.`,
         personImages,
         true,
       );
-    } else if (modelSpec) {
-      parts.push({ text: `[${label} Person — Specifications]${modelSpec}` });
     }
     if (logoImages.length > 0) {
       pushImageParts(
@@ -101,7 +85,6 @@ export function buildMultiGptPrompt(opts: MultiPromptOptions): string {
     : 'Single shot only, no collage. ';
   const situation = opts.customPrompt ? `Scene direction (people only, do not change background): ${opts.customPrompt}. ` : '';
 
-  // 배경/무드 — 텍스트 묘사와 이미지 레퍼런스 모두 처리
   let bg = '';
   if (opts.mood && opts.multiBackgroundImages.length > 0) {
     bg = `CRITICAL — Background: Reproduce the background using BOTH the provided reference images AND this description: "${opts.mood}". This OVERRIDES any default studio background. `;
@@ -111,28 +94,12 @@ export function buildMultiGptPrompt(opts: MultiPromptOptions): string {
     bg = `CRITICAL — Background: You MUST reproduce the background from the provided reference images exactly — location, lighting, color tone, and atmosphere. This OVERRIDES any default studio background. Do NOT use a plain studio background. `;
   }
 
-  const size = opts.garmentSize ? buildGarmentSizePrompt(opts.garmentSize).replace('\n', ' ') : '';
-  const negative = opts.negativePrompt ? ` Additionally avoid: ${opts.negativePrompt}.` : '';
-
-  const personSpecs = Array.from({ length: opts.personCount }, (_, i) => {
-    const label = PERSON_LABELS[i] ?? `${i + 1}th`;
-    const spec = buildModelSettingsPrompt(
-      opts.multiPersonGenders[i] ?? '',
-      opts.multiPersonAgeGroups[i] ?? '',
-      opts.multiPersonHeights[i] ?? '',
-      opts.multiPersonBodyTypes[i] ?? '',
-    );
-    return spec ? `${label} person — ${spec.replace('\n[Model Specifications]: ', '')}` : '';
-  }).filter(Boolean).join('; ');
-
-  const personSpecPrompt = personSpecs ? ` Person specifications: ${personSpecs}.` : '';
-
   return `You are an expert fashion commercial photographer. Generate a high-fidelity, professional fashion editorial image featuring ${opts.personCount} model(s). `
     + `CRITICAL: Maintain absolute fidelity and sharpness of all graphics, logos, and artworks on clothing — no blur, warp, or pixelation. `
     + `Render all artwork as crisp vector-quality printing with sharp edges. `
     + `8k resolution, hyper-detailed fabric texture, deep depth of field (f/8–f/11), zero compression artifacts. `
     + `Accurately reproduce each person's appearance, outfit, and any provided logo/artwork details exactly as shown in the reference images. `
-    + `${bg}${situation}${size}${personSpecPrompt}${layout}`
-    + `Negative: blurry graphics, pixelated artwork, distorted text, warped logo, low quality apparel, fuzzy print${negative}. `
+    + `${bg}${situation}${layout}`
+    + `Negative: blurry graphics, pixelated artwork, distorted text, warped logo, low quality apparel, fuzzy print. `
     + `No watermarks or text overlays.`;
 }

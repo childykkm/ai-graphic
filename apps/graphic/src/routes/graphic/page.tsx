@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, User, Image as ImageIcon, Settings2 } from 'lucide-react';
-import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput, ModelSettings } from '@repo/ui';
+import { CollapsibleSection, ImageUploader, PageShell, TuningSection, GenerateButton, BrandInput } from '@repo/ui';
 import { usePageState, useHistorySave } from '@repo/core';
 import type { AspectRatio } from '@repo/core';
 import type { BrandName } from '@repo/ui';
@@ -23,18 +23,6 @@ export default function GraphicPage() {
   const state = usePageState('graphic');
   const {    openSections, toggle,
     customPrompt, setCustomPrompt,
-    negativePrompt, setNegativePrompt,
-    category, setCategory,
-    material, setMaterial,
-    fit, setFit,
-    colorSwatch, setColorSwatch,
-    season, setSeason,
-    mood, setMood,
-    garmentSize, setGarmentSize,
-    modelGender, setModelGender,
-    modelAgeGroup, setModelAgeGroup,
-    modelHeight, setModelHeight,
-    modelBodyType, setModelBodyType,
     aspectRatio, setAspectRatio,
     imageSize, setImageSize,
     imagesPerShot, setImagesPerShot,
@@ -81,14 +69,6 @@ export default function GraphicPage() {
         <TuningSection
           activeTab="graphic"
           customPrompt={customPrompt} setCustomPrompt={setCustomPrompt}
-          negativePrompt={negativePrompt} setNegativePrompt={setNegativePrompt}
-          category={category} setCategory={setCategory}
-          material={material} setMaterial={setMaterial}
-          fit={fit} setFit={setFit}
-          colorSwatch={colorSwatch} setColorSwatch={setColorSwatch}
-          season={season} setSeason={setSeason}
-          mood={mood} setMood={setMood}
-          garmentSize={garmentSize} setGarmentSize={setGarmentSize}
           aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
           imageSize={imageSize} setImageSize={setImageSize}
           imagesPerShot={imagesPerShot} setImagesPerShot={setImagesPerShot}
@@ -132,10 +112,6 @@ export default function GraphicPage() {
           images={images.reference} target="reference" maxCount={5}
           inputRef={refs.reference} onFiles={processFiles} onRemove={removeImage}
           placeholder="인물 사진 드롭 또는 클릭" variant="grid" hoverColor="blue"
-        />
-        <ModelSettings
-          value={{ gender: modelGender, ageGroup: modelAgeGroup, height: modelHeight, bodyType: modelBodyType }}
-          onChange={(v) => { setModelGender(v.gender); setModelAgeGroup(v.ageGroup); setModelHeight(v.height); setModelBodyType(v.bodyType); }}
         />
       </CollapsibleSection>
 

@@ -20,5 +20,3 @@ export type { BrandInputProps, BrandName } from './BrandInput/BrandInput';
 export { GuideModal } from './GuideModal/index';
 export { FullscreenViewer } from './FullscreenViewer/index';
 export { ColorPicker } from './ColorPicker/index';
-export { ModelSettings } from './ModelSettings/index';
-export type { ModelSettingsValue } from './ModelSettings/index';
