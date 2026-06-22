@@ -1,7 +1,8 @@
 export interface GeminiGenerateRequest {
   model: string;
-  contents: { parts: GeminiPart[] };
+  contents: { parts: GeminiPart[] }[];
   config?: {
+    responseModalities?: string[];
     imageConfig?: {
       aspectRatio?: string;
       imageSize?: string;
@@ -29,6 +30,13 @@ export interface ImageResult {
   id: string;
   url: string;
   prompt: string;
+}
+
+export interface OpenAIGenerateRequest {
+  model: string;
+  prompt: string;
+  size?: string;
+  imageParts?: Array<{ data: string; mimeType: string }>;
 }
 
 export interface AuthVerifyRequest {

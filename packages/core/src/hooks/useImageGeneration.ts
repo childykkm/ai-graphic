@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react';
 import { GeminiClient, OpenAIClient, formatErrorMessage, BATCH_SIZE } from '@repo/core';
 import type { GeneratedImage, AspectRatio, ImageSize, ActiveTab, FloorStyle, ModelType, UploadedImage } from '@repo/core';
-import { API_ASPECT_RATIO_MAP, API_MODEL_MAP, GPT_SIZE_MAP } from '@repo/core';
-import type { GeminiGenerateRequest, GeminiPart, ImageResult } from '@repo/core';
-import { buildGraphicGeminiParts, buildGraphicGptPrompt } from './prompts/graphicPrompt';
-import { buildFloorGeminiParts, buildFloorGptPrompt } from './prompts/floorPrompt';
-import { buildModelGeminiParts, buildModelGptPrompt, MODEL_SHOTS } from './prompts/modelPrompt';
-import { buildMultiGeminiParts, buildMultiGptPrompt } from './prompts/multiPrompt';
-import { buildVariationGeminiParts, buildVariationGptPrompt } from './prompts/variationPrompt';
+import type { GeminiGenerateRequest, ImageResult, OpenAIGenerateRequest } from '@repo/core';
+import { UnifiedPromptBuilder } from '../prompt/UnifiedPromptBuilder';
+import { AdapterFactory } from '../prompt/adapters/AdapterFactory';
+import type { ImageData, UnifiedPromptInput } from '../prompt/types';
+
+/** Model 모드에서 생성할 컷 수 */
+const MODEL_SHOT_COUNT = 4;
 
 export interface GenerationOptions {
   activeTab: ActiveTab;
@@ -76,66 +76,69 @@ const RESULT_LABELS: Record<ActiveTab, string> = {
   graphic: '생성된 모델 컷',
 };
 
-function buildGeminiRequest(opts: GenerationOptions, shotIndex?: number): GeminiGenerateRequest {
-  let parts: GeminiPart[] = [];
-  let prompt = '';
-
-  switch (opts.activeTab) {
-    case 'graphic': {
-      const result = buildGraphicGeminiParts(opts);
-      parts = result.parts;
-      prompt = result.prompt;
-      break;
-    }
-    case 'floor': {
-      const result = buildFloorGeminiParts(opts);
-      parts = result.parts;
-      prompt = result.prompt;
-      break;
-    }
-    case 'model': {
-      const result = buildModelGeminiParts(opts, shotIndex ?? 0);
-      parts = result.parts;
-      prompt = result.prompt;
-      break;
-    }
-    case 'multi': {
-      const result = buildMultiGeminiParts(opts);
-      parts = result.parts;
-      prompt = result.prompt;
-      break;
-    }
-    case 'variation': {
-      const result = buildVariationGeminiParts(opts);
-      parts = result.parts;
-      prompt = result.prompt;
-      break;
-    }
-  }
-
-  // 프롬프트 텍스트를 이미지 파트보다 먼저 위치시켜 Gemini가 지시를 먼저 읽도록 함
-  const orderedParts: GeminiPart[] = [{ text: prompt }, ...parts];
-
-  return {
-    model: API_MODEL_MAP[opts.modelType],
-    contents: { parts: orderedParts },
-    config: {
-      imageConfig: {
-        aspectRatio: API_ASPECT_RATIO_MAP[opts.aspectRatio],
-        imageSize: opts.imageSize,
-      },
-    },
-  };
+/**
+ * UploadedImage 배열을 ImageData 배열로 변환합니다.
+ * base64, mimeType, fileName만 추출합니다.
+ */
+function toImageData(images: UploadedImage[]): ImageData[] {
+  return images.map((img) => ({
+    base64: img.base64,
+    mimeType: img.file?.type || 'image/png',
+    fileName: img.file?.name || 'image.png',
+  }));
 }
 
-function buildGptPrompt(opts: GenerationOptions, shotIndex = 0): string {
-  switch (opts.activeTab) {
-    case 'graphic':   return buildGraphicGptPrompt(opts);
-    case 'floor':     return buildFloorGptPrompt(opts, shotIndex);
-    case 'model':     return buildModelGptPrompt(opts, shotIndex);
-    case 'multi':     return buildMultiGptPrompt(opts);
-    case 'variation': return buildVariationGptPrompt(opts);
-  }
+/**
+ * 2차원 UploadedImage 배열을 2차원 ImageData 배열로 변환합니다.
+ */
+function toImageData2D(images: UploadedImage[][]): ImageData[][] {
+  return images.map((arr) => toImageData(arr));
+}
+
+/**
+ * GenerationOptions를 UnifiedPromptInput으로 변환합니다.
+ */
+function buildUnifiedInput(opts: GenerationOptions, shotIndex?: number): UnifiedPromptInput {
+  return {
+    activeTab: opts.activeTab,
+    customPrompt: opts.customPrompt,
+    imagesPerShot: opts.imagesPerShot,
+    gazeVariation: opts.gazeVariation,
+    poseVariation: opts.poseVariation,
+    viewVariation: opts.viewVariation,
+    // Graphic
+    graphicFrontImages: toImageData(opts.graphicFrontImages),
+    graphicBackImages: toImageData(opts.graphicBackImages),
+    graphicNecklineImages: toImageData(opts.graphicNecklineImages),
+    graphicLogoImages: toImageData(opts.graphicLogoImages),
+    graphicDetailImages: toImageData(opts.graphicDetailImages),
+    graphicOtherImages: toImageData(opts.graphicOtherImages),
+    refModelImages: toImageData(opts.refModelImages),
+    bgImages: toImageData(opts.bgImages),
+    // Floor
+    floorStyle: opts.floorStyle,
+    floorBgColor: opts.floorBgColor,
+    floorFrontImages: toImageData(opts.floorFrontImages),
+    floorBackImages: toImageData(opts.floorBackImages),
+    floorNecklineImages: toImageData(opts.floorNecklineImages),
+    floorLogoImages: toImageData(opts.floorLogoImages),
+    floorDetailImages: toImageData(opts.floorDetailImages),
+    // Model
+    modelBgColor: opts.modelBgColor,
+    modelReferenceImages: toImageData(opts.modelReferenceImages),
+    shotIndex: shotIndex,
+    // Multi
+    personCount: opts.personCount,
+    multiPersonImages: toImageData2D(opts.multiPersonImages),
+    multiPersonLogoImages: toImageData2D(opts.multiPersonLogoImages),
+    multiBackgroundImages: toImageData(opts.multiBackgroundImages),
+    mood: opts.mood,
+    // Variation
+    variationImages: toImageData(opts.variationImages),
+    variationNecklineImages: toImageData(opts.variationNecklineImages),
+    variationLogoImages: toImageData(opts.variationLogoImages),
+    variationDetailImages: toImageData(opts.variationDetailImages),
+  };
 }
 
 export function useImageGeneration() {
@@ -155,9 +158,23 @@ export function useImageGeneration() {
     setResults([]);
 
     const isModel = opts.activeTab === 'model';
-    const requestCount = isModel ? MODEL_SHOTS.length : opts.count;
-    const requests = Array.from({ length: requestCount }, (_, i) => buildGeminiRequest(opts, i));
+    const requestCount = isModel ? MODEL_SHOT_COUNT : opts.count;
     const label = RESULT_LABELS[opts.activeTab];
+
+    const builder = new UnifiedPromptBuilder();
+    const adapter = AdapterFactory.getAdapter(opts.modelType);
+    const generationConfig = {
+      aspectRatio: opts.aspectRatio,
+      imageSize: opts.imageSize,
+      modelType: opts.modelType,
+    };
+
+    // 각 요청에 대해 UnifiedPromptBuilder + Adapter를 사용하여 API 요청 생성
+    const requests = Array.from({ length: requestCount }, (_, i) => {
+      const unifiedInput = buildUnifiedInput(opts, isModel ? i : undefined);
+      const promptOutput = builder.build(unifiedInput);
+      return adapter.adapt(promptOutput, generationConfig);
+    });
 
     const onResultCallback = (result: ImageResult, requestIndex: number) => {
       setResults((prev) => [...prev, { ...result, prompt: label, shotIndex: isModel ? requestIndex : undefined }]);
@@ -168,17 +185,7 @@ export function useImageGeneration() {
 
     try {
       if (isOpenAIModel(opts.modelType)) {
-        const openaiRequests = requests.map((req, idx) => ({
-          model: API_MODEL_MAP[opts.modelType],
-          prompt: buildGptPrompt(opts, idx),
-          size: GPT_SIZE_MAP[opts.aspectRatio][opts.imageSize],
-          imageParts: req.contents.parts
-            .filter((p: GeminiPart) => 'inlineData' in p && p.inlineData)
-            .map((p: GeminiPart) => ({
-              data: (p as { inlineData: { data: string; mimeType: string } }).inlineData.data,
-              mimeType: (p as { inlineData: { data: string; mimeType: string } }).inlineData.mimeType,
-            })),
-        }));
+        const openaiRequests = requests as OpenAIGenerateRequest[];
 
         if (isModel) {
           await openaiClientRef.current.generateModelShots(openaiRequests, onProgressCallback, onResultCallback);
@@ -186,9 +193,11 @@ export function useImageGeneration() {
           await openaiClientRef.current.generateBatch(openaiRequests, onProgressCallback, onResultCallback, BATCH_SIZE);
         }
       } else {
+        const geminiRequests = requests as GeminiGenerateRequest[];
+
         await geminiClientRef.current.generateBatch(
-          requests, onProgressCallback, onResultCallback,
-          isModel ? MODEL_SHOTS.length : BATCH_SIZE,
+          geminiRequests, onProgressCallback, onResultCallback,
+          isModel ? MODEL_SHOT_COUNT : BATCH_SIZE,
         );
       }
     } catch (err) {

@@ -10,7 +10,8 @@
     "./types": "./src/types/index.ts",
     "./utils": "./src/utils/index.ts",
     "./errors": "./src/errors/index.ts",
-    "./hooks": "./src/hooks/index.ts"
+    "./hooks": "./src/hooks/index.ts",
+    "./prompt": "./src/prompt/index.ts"
   },
   "scripts": {
     "build": "tsc",

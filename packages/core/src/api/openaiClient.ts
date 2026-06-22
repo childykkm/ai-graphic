@@ -1,6 +1,8 @@
 import OpenAI, { toFile } from 'openai';
-import type { ImageResult } from '../types/api';
+import type { ImageResult, OpenAIGenerateRequest } from '../types/api';
 import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
+
+export type { OpenAIGenerateRequest } from '../types/api';
 
 const RETRY_DELAYS = [1000, 2000, 4000];
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -27,13 +29,6 @@ async function resizeToUnder4MB(base64: string, mimeType: string): Promise<Blob>
     img.onerror = reject;
     img.src = `data:${mimeType};base64,${base64}`;
   });
-}
-
-export interface OpenAIGenerateRequest {
-  model: string;
-  prompt: string;
-  size?: string;
-  imageParts?: Array<{ data: string; mimeType: string }>;
 }
 
 export class OpenAIClient {
