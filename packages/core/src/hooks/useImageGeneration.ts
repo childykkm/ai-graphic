@@ -149,7 +149,7 @@ export function useImageGeneration() {
   const geminiClientRef = useRef(new GeminiClient());
   const openaiClientRef = useRef(new OpenAIClient());
 
-  const isOpenAIModel = (modelType: ModelType) => modelType === 'gpt-image-2';
+  const isOpenAIModel = (modelType: ModelType) => modelType === 'gpt-image-2' || modelType === 'gpt-image-1.5';
 
   const generate = async (opts: GenerationOptions) => {
     setIsGenerating(true);

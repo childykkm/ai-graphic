@@ -13,6 +13,7 @@ export class AdapterFactory {
   private static adapters: Record<string, ModelAdapter> = {
     'nanobanana-2': new GeminiAdapter(),
     'nanobanana-pro': new GeminiAdapter(),
+    'gpt-image-1.5': new GptAdapter(),
     'gpt-image-2': new GptAdapter(),
   };
 

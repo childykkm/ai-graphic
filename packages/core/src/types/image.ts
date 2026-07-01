@@ -1,6 +1,6 @@
 export type AspectRatio = '1:1' | '3:2' | '2:3' | '16:9' | '9:16';
 export type ImageSize = '1K' | '2K' | '4K';
-export type ModelType = 'nanobanana-2' | 'nanobanana-pro' | 'gpt-image-2';
+export type ModelType = 'nanobanana-2' | 'nanobanana-pro' | 'gpt-image-1.5' | 'gpt-image-2';
 export type ActiveTab = 'graphic' | 'multi' | 'floor' | 'model' | 'variation';
 export type FloorStyle = 'hanger' | 'folded' | 'spread';
 export type ImageTarget =
@@ -64,12 +64,13 @@ export const CSS_ASPECT_RATIO_MAP: Record<AspectRatio, string> = {
 };
 
 export const API_MODEL_MAP: Record<ModelType, string> = {
-  'nanobanana-2': 'gemini-3.1-flash-image-preview',
-  'nanobanana-pro': 'gemini-3-pro-image-preview',
+  'nanobanana-2': 'gemini-3.1-flash-image',
+  'nanobanana-pro': 'gemini-3-pro-image',
+  'gpt-image-1.5': 'gpt-image-1.5',
   'gpt-image-2': 'gpt-image-2',
 };
 
-export const API_MODEL = 'gemini-3-pro-image-preview';
+export const API_MODEL = 'gemini-3-pro-image';
 
 export const HIGH_VOLUME_THRESHOLD = 11;
 

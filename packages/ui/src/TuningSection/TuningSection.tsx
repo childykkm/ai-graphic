@@ -71,6 +71,7 @@ export function TuningSection({
             {([
               { value: 'nanobanana-2', label: '나노바나나 2' },
               { value: 'nanobanana-pro', label: '나노바나나 프로' },
+              { value: 'gpt-image-1.5', label: 'GPT Image 1.5' },
               { value: 'gpt-image-2', label: 'GPT Image 2' },
             ] as { value: ModelType; label: string }[]).map(({ value, label }) => (
               <button key={value} onClick={() => setModelType(value)}
@@ -109,7 +110,7 @@ export function TuningSection({
           ))}
         </div>
         <p className="text-xs font-semibold text-gray-400 leading-relaxed break-keep">
-          {modelType === 'gpt-image-2'
+          {modelType === 'gpt-image-2' || modelType === 'gpt-image-1.5'
             ? '* 1K는 최대 1536px, 2K는 최대 2048px, 4K는 최대 3840px 해상도로 생성됩니다.'
             : '* 1K는 약 100만 화소(1024x1024), 2K는 약 400만 화소, 4K는 약 1600만 화소급의 초고해상도를 의미합니다. (1K도 HD(720p)보다 조금 더 선명하며, 2K는 일반적인 FHD(1080p)를 능가합니다.)'}
         </p>
