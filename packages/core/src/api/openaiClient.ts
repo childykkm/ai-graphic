@@ -4,6 +4,37 @@ import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
 export type { OpenAIGenerateRequest } from '../types/api';
 
 const RETRY_DELAYS = [1000, 2000, 4000];
+const MAX_PAYLOAD_BYTES = 3.5 * 1024 * 1024; // 3.5MB per image (to keep total payload under 4.5MB)
+
+/**
+ * Base64 이미지를 지정 크기 이하로 리사이즈하여 새 base64 문자열을 반환합니다.
+ */
+async function compressBase64Image(base64: string, mimeType: string, maxBytes: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let scale = 1;
+      const tryRender = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.floor(img.width * scale);
+        canvas.height = Math.floor(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/png');
+        const b64Part = dataUrl.split(',')[1];
+        // base64는 원본 대비 약 4/3 크기
+        const estimatedBytes = (b64Part.length * 3) / 4;
+        if (estimatedBytes <= maxBytes || scale < 0.1) {
+          return resolve(b64Part);
+        }
+        scale *= 0.75;
+        tryRender();
+      };
+      tryRender();
+    };
+    img.onerror = reject;
+    img.src = `data:${mimeType};base64,${base64}`;
+  });
+}
 
 export class OpenAIClient {
   private abortController: AbortController | null = null;
@@ -104,6 +135,20 @@ export class OpenAIClient {
     if (signal.aborted) return null;
 
     try {
+      // 이미지가 있으면 Vercel payload 제한(4.5MB)에 맞게 압축
+      let compressedParts = request.imageParts;
+      if (request.imageParts && request.imageParts.length > 0) {
+        const maxPerImage = Math.floor(MAX_PAYLOAD_BYTES / request.imageParts.length);
+        compressedParts = await Promise.all(
+          request.imageParts.map(async (img) => {
+            const estimatedBytes = (img.data.length * 3) / 4;
+            if (estimatedBytes <= maxPerImage) return img;
+            const compressed = await compressBase64Image(img.data, img.mimeType, maxPerImage);
+            return { data: compressed, mimeType: 'image/png' };
+          })
+        );
+      }
+
       const response = await fetch('/api/openai-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,7 +156,7 @@ export class OpenAIClient {
           model: request.model,
           prompt: request.prompt,
           size: request.size,
-          imageParts: request.imageParts,
+          imageParts: compressedParts,
         }),
         signal,
       });
