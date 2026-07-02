@@ -1,35 +1,9 @@
-import OpenAI, { toFile } from 'openai';
 import type { ImageResult, OpenAIGenerateRequest } from '../types/api';
 import { RateLimitError, PermissionError, NetworkError } from '../errors/index';
 
 export type { OpenAIGenerateRequest } from '../types/api';
 
 const RETRY_DELAYS = [1000, 2000, 4000];
-const MAX_BYTES = 4 * 1024 * 1024;
-
-async function resizeToUnder4MB(base64: string, mimeType: string): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      let scale = 1;
-      const tryRender = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.floor(img.width * scale);
-        canvas.height = Math.floor(img.height * scale);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          if (!blob) return reject(new Error('PNG 변환 실패'));
-          if (blob.size <= MAX_BYTES || scale < 0.1) return resolve(blob);
-          scale *= 0.8;
-          tryRender();
-        }, 'image/png');
-      };
-      tryRender();
-    };
-    img.onerror = reject;
-    img.src = `data:${mimeType};base64,${base64}`;
-  });
-}
 
 export class OpenAIClient {
   private abortController: AbortController | null = null;
@@ -130,43 +104,38 @@ export class OpenAIClient {
     if (signal.aborted) return null;
 
     try {
-      const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey) throw new NetworkError('OpenAI API 키가 설정되지 않았습니다.');
-
-      const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-
-      let b64: string | undefined;
-
-      if (request.imageParts && request.imageParts.length > 0) {
-        // images.edit — 이미지 + 텍스트
-        const imageFiles = await Promise.all(
-          request.imageParts.map(async (img, idx) => {
-            const blob = await resizeToUnder4MB(img.data, img.mimeType);
-            return toFile(blob, `image_${idx}.png`, { type: 'image/png' });
-          })
-        );
-
-        const response = await client.images.edit({
-          model: request.model,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          image: imageFiles.length === 1 ? imageFiles[0] : imageFiles as any,
-          prompt: request.prompt,
-          n: 1,
-          ...(request.size && { size: request.size as Parameters<typeof client.images.edit>[0]['size'] }),
-        });
-
-        b64 = response.data?.[0]?.b64_json;
-      } else {
-        // images.generate — 텍스트만
-        const response = await client.images.generate({
+      const response = await fetch('/api/openai-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           model: request.model,
           prompt: request.prompt,
-          n: 1,
-          ...(request.size && { size: request.size as Parameters<typeof client.images.generate>[0]['size'] }),
-        });
+          size: request.size,
+          imageParts: request.imageParts,
+        }),
+        signal,
+      });
 
-        b64 = response.data?.[0]?.b64_json;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        if (response.status === 429) {
+          if (attempt < RETRY_DELAYS.length) {
+            await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+            return this.generateWithRetry(request, signal, attempt + 1);
+          }
+          throw new RateLimitError(errorData.message ?? '속도 제한 초과', 60);
+        }
+
+        if (response.status === 403) {
+          throw new PermissionError(errorData.message ?? 'API 키 권한 없음');
+        }
+
+        throw new NetworkError(errorData.message ?? '이미지 생성 중 오류가 발생했습니다.');
       }
+
+      const data = await response.json();
+      const b64 = data.data?.[0]?.b64_json;
 
       if (!b64) throw new NetworkError('이미지를 반환받지 못했습니다.');
 
@@ -177,21 +146,6 @@ export class OpenAIClient {
       };
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return null;
-
-      const e = err as { status?: number; message?: string };
-
-      if (e.status === 429) {
-        if (attempt < RETRY_DELAYS.length) {
-          await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
-          return this.generateWithRetry(request, signal, attempt + 1);
-        }
-        throw new RateLimitError(e.message ?? '속도 제한 초과', 60);
-      }
-
-      if (e.status === 403) {
-        throw new PermissionError(e.message ?? 'API 키 권한 없음');
-      }
-
       throw err;
     }
   }
