@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useImageUpload } from './useImageUpload';
 import { useImageGeneration } from './useImageGeneration';
 import { useMultiPersonUpload } from './useMultiPersonUpload';
@@ -113,9 +113,19 @@ export function usePageState(activeTab: ActiveTab) {
       variationLogoImages: images.variationLogo,
       variationDetailImages: images.variationDetail,
     }).then(() => {
-      if (error) setShowErrorModal(true);
+      // error는 generate 내부에서 상태 업데이트되므로 여기서 체크하지 않음
     });
   };
+
+  // error가 새로 설정되면 모달 표시
+  const prevErrorRef = useRef<string | null>(null);
+  if (error && error !== prevErrorRef.current) {
+    prevErrorRef.current = error;
+    setShowErrorModal(true);
+  }
+  if (!error && prevErrorRef.current) {
+    prevErrorRef.current = null;
+  }
 
   const isGenerateDisabled =
     isGenerating ||
