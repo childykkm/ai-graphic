@@ -65,7 +65,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 bg-[#1A1A1A] rounded-3xl flex items-center justify-center shadow-xl mb-4">
             <Shirt className="text-white w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-[#1A1A1A]">AI Studio</h1>
+          <h1 className="text-3xl font-black tracking-tight text-[#1A1A1A]">CutMaker</h1>
           <p className="text-gray-400 text-sm mt-2 font-medium">패션 이미지 생성 플랫폼</p>
         </div>
 

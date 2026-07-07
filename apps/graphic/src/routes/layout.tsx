@@ -23,7 +23,7 @@ export default function Layout() {
             <div className="w-9 h-9 bg-[#1A1A1A] rounded-xl flex items-center justify-center shadow-md">
               <Shirt className="text-white w-4.5 h-4.5" />
             </div>
-            <span className="text-lg font-black tracking-tight text-[#1A1A1A]">AI Studio</span>
+            <span className="text-lg font-black tracking-tight text-[#1A1A1A]">CutMaker</span>
           </div>
 
 

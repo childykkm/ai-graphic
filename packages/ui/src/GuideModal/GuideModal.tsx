@@ -115,7 +115,7 @@ export function GuideModal({ isOpen, onClose, activeTab, onTabChange }: GuideMod
                     <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-2">
                       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-1.5"><Key size={14} /> 안전한 API Key 연결 프로세스</h4>
                       <p className="text-xs text-slate-500 font-medium">
-                        시스템을 활용하기 위해 AI Studio Secrets 환경 데이터에 등록되어 있는 API 키를 사용하거나, 키가 활성화되어 있지 않은 경우 우측 상단의 <strong className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">API 키 선택</strong> 버튼을 클릭해 키를 간편하게 연동해 주시면 정상 가동됩니다.
+                        시스템을 활용하기 위해 CutMaker Secrets 환경 데이터에 등록되어 있는 API 키를 사용하거나, 키가 활성화되어 있지 않은 경우 우측 상단의 <strong className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">API 키 선택</strong> 버튼을 클릭해 키를 간편하게 연동해 주시면 정상 가동됩니다.
                       </p>
                     </div>
                     */}
