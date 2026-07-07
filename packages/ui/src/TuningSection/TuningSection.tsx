@@ -135,8 +135,8 @@ export function TuningSection({
         <>
           <div className="space-y-4">
             <label className="text-sm font-bold text-gray-700 block">바닥컷 스타일</label>
-            <div className="grid grid-cols-3 gap-2">
-              {[{ id: 'hanger', label: '옷걸이컷' }, { id: 'folded', label: '접힌 바닥컷' }, { id: 'spread', label: '펼쳐진 바닥컷' }].map((opt) => (
+            <div className="grid grid-cols-4 gap-2">
+              {[{ id: 'hanger', label: '옷걸이컷' }, { id: 'folded', label: '접힌 바닥컷' }, { id: 'spread', label: '펼쳐진 바닥컷' }, { id: 'ghost', label: '고스트샷' }].map((opt) => (
                 <button key={opt.id} onClick={() => setFloorStyle(opt.id as FloorStyle)}
                   className={`py-3.5 rounded-xl text-sm font-bold transition-all border-2 break-keep ${floorStyle === opt.id ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-300'}`}>
                   {opt.label}

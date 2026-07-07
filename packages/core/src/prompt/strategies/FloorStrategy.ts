@@ -9,9 +9,44 @@ import type {
 // ── Floor style descriptions ─────────────────────────────────────────────────
 
 const FLOOR_STYLE_DESCRIPTION: Record<FloorStyle, string> = {
-  hanger: 'garment displayed hanging on a hanger',
-  folded: 'garment neatly folded',
-  spread: 'garment laid flat in a flat lay spread out style',
+  hanger:
+    'The garment is displayed hanging vertically on a clothing hanger. ' +
+    'The hanger hook should be visible at the top. The garment hangs naturally with gravity, ' +
+    'showing its full silhouette as if on a retail display rack. ' +
+    'Shot from the front, straight-on angle.',
+  folded:
+    'The garment is neatly folded and placed on a flat surface, viewed from directly above (bird\'s-eye view). ' +
+    'The garment should be folded in a standard retail-style fold (like how it would appear on a store shelf). ' +
+    'Show clean, precise fold lines with the front design visible.',
+  spread:
+    'The garment is laid completely flat and spread out on a surface, viewed from directly above (bird\'s-eye view). ' +
+    'The garment should be fully unfolded and smoothed out with no wrinkles, ' +
+    'displaying its complete shape, proportions, and design details. ' +
+    'Sleeves (if any) should be extended outward naturally.',
+  ghost:
+    'The garment is displayed in a "ghost mannequin" (invisible mannequin) style. ' +
+    'The garment appears three-dimensional as if worn by an invisible person, showing its natural fit, shape, and volume. ' +
+    'The inside neckline/collar area and inner construction should be subtly visible where the mannequin would be removed. ' +
+    'The garment should float naturally in space with realistic drape and form, ' +
+    'shot from a straight-on front angle at chest/waist height. ' +
+    'This creates a hollow, 3D appearance that showcases the garment\'s silhouette and fit without any model or mannequin visible.',
+};
+
+/** Negative constraints per style — prevent model from generating the wrong style */
+const FLOOR_STYLE_NEGATIVE: Record<FloorStyle, string> = {
+  hanger:
+    'Do NOT lay the garment flat on a surface. Do NOT fold the garment. ' +
+    'The garment MUST be hanging on a hanger.',
+  folded:
+    'Do NOT include any hanger. Do NOT spread the garment flat/unfolded. ' +
+    'The garment MUST be folded neatly.',
+  spread:
+    'Do NOT include any hanger or hook. Do NOT fold the garment. ' +
+    'The garment MUST be fully spread out flat, completely unfolded.',
+  ghost:
+    'Do NOT include any hanger, hook, mannequin, or human model. Do NOT lay the garment flat. Do NOT fold the garment. ' +
+    'The garment MUST appear three-dimensional as if worn by an invisible body. ' +
+    'No visible mannequin, stand, or support structure should be shown.',
 };
 
 /**
@@ -66,8 +101,9 @@ export class FloorStrategy implements ModeStrategy {
     // Garment detail integration
     text += shared.getGarmentDetailPrompt();
 
-    // Floor style instruction
-    text += `\n[Floor Style]: Generate in [${FLOOR_STYLE_DESCRIPTION[floorStyle]}] style.\n`;
+    // Floor style instruction (detailed description + negative constraint)
+    text += `\n[Floor Style — CRITICAL]: ${FLOOR_STYLE_DESCRIPTION[floorStyle]}\n`;
+    text += `\n[Floor Style — RESTRICTIONS]: ${FLOOR_STYLE_NEGATIVE[floorStyle]}\n`;
 
     // Background color instruction
     text += `\n[Background]: Solid background color: ${floorBgColor}. Clean, even surface with no shadows bleeding outside the garment.\n`;

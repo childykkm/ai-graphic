@@ -2,7 +2,7 @@ export type AspectRatio = '1:1' | '3:2' | '2:3' | '16:9' | '9:16';
 export type ImageSize = '1K' | '2K' | '4K';
 export type ModelType = 'nanobanana-2' | 'nanobanana-pro' | 'gpt-image-1.5' | 'gpt-image-2';
 export type ActiveTab = 'graphic' | 'multi' | 'floor' | 'model' | 'variation';
-export type FloorStyle = 'hanger' | 'folded' | 'spread';
+export type FloorStyle = 'hanger' | 'folded' | 'spread' | 'ghost';
 export type ImageTarget =
   | 'graphicFront'
   | 'graphicBack'
